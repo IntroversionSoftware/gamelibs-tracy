@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-#if defined _WIN64
+#if defined _M_AMD64
 #  include <intrin.h>
 #  define TracyCountBits __popcnt64
 #  define TracyLzcnt __lzcnt64
