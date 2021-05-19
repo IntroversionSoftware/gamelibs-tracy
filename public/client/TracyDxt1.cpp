@@ -239,7 +239,7 @@ static tracy_force_inline uint64_t ProcessRGB( const uint8_t* src )
 
     return uint64_t( ( uint64_t( to565( vmin ) ) << 16 ) | to565( vmax ) | ( uint64_t( vp ) << 32 ) );
 #elif defined __ARM_NEON
-#  ifdef __aarch64__
+# if defined(__aarch64__) || defined(_M_ARM64)
     uint8x16x4_t px = vld4q_u8( src );
 
     uint8x16_t lr = px.val[0];
