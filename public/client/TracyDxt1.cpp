@@ -91,7 +91,7 @@ static const uint16_t DivTable[255*3+1] = {
     0x015c, 0x015b, 0x015b, 0x015a, 0x015a, 0x0159, 0x0159, 0x0158, 0x0158, 0x0158, 0x0157, 0x0157, 0x0156, 0x0156
 };
 
-#if defined __ARM_NEON && defined __aarch64__
+#if defined __ARM_NEON && (defined __aarch64__ || defined _M_ARM64)
 static const uint16_t DivTableNEON[255*3+1] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x1c71, 0x1af2, 0x1999, 0x1861, 0x1745, 0x1642, 0x1555, 0x147a, 0x13b1, 0x12f6, 0x1249, 0x11a7, 0x1111, 0x1084, 0x1000,
@@ -239,7 +239,7 @@ static tracy_force_inline uint64_t ProcessRGB( const uint8_t* src )
 
     return uint64_t( ( uint64_t( to565( vmin ) ) << 16 ) | to565( vmax ) | ( uint64_t( vp ) << 32 ) );
 #elif defined __ARM_NEON
-#  ifdef __aarch64__
+# if defined(__aarch64__) || defined(_M_ARM64)
     uint8x16x4_t px = vld4q_u8( src );
 
     uint8x16_t lr = px.val[0];
