@@ -574,15 +574,28 @@ static const char* GetHostInfo()
     ptr += sprintf( ptr, "Arch: x86\n" );
 #elif defined __x86_64__ || defined _M_X64
     ptr += sprintf( ptr, "Arch: x64\n" );
-#elif defined __aarch64__
+#elif defined __aarch64__ || defined _M_ARM64
     ptr += sprintf( ptr, "Arch: ARM64\n" );
-#elif defined __ARM_ARCH
+#elif defined __ARM_ARCH || defined _M_ARM
     ptr += sprintf( ptr, "Arch: ARM\n" );
 #else
     ptr += sprintf( ptr, "Arch: unknown\n" );
 #endif
 
-#if defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
+#if defined _WIN32
+    char cpuModel[64] = "unknown";
+    HKEY hKey;
+    DWORD valType, valSize = sizeof( cpuModel );
+    if( RegOpenKeyExW( HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKey ) == ERROR_SUCCESS )
+    {
+        if( !RegQueryValueExA( hKey, "ProcessorNameString", nullptr, &valType, (PBYTE)cpuModel, &valSize ) )
+        {
+            if ( valType != REG_SZ || !strlen( cpuModel ) ) sprintf( cpuModel, "unknown" );
+        }
+        RegCloseKey( hKey );
+    }
+    ptr += sprintf( ptr, "CPU: %s\n", cpuModel );
+#elif defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
     uint32_t regs[4];
     char cpuModel[4*4*3+1] = {};
     auto modelPtr = cpuModel;
@@ -1595,7 +1608,7 @@ void Profiler::Worker()
     uint8_t cpuArch = CpuArchX86;
 #elif defined __x86_64__ || defined _M_X64
     uint8_t cpuArch = CpuArchX64;
-#elif defined __aarch64__
+#elif defined __aarch64__ || defined _M_ARM64
     uint8_t cpuArch = CpuArchArm64;
 #elif defined __ARM_ARCH
     uint8_t cpuArch = CpuArchArm32;
