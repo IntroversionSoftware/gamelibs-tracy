@@ -21,6 +21,9 @@
 
 #include <capstone.h>
 
+#define ZDICT_STATIC_LINKING_ONLY
+#include "../zstd/zdict.h"
+
 #include "../common/TracyProtocol.hpp"
 #include "../common/TracySystem.hpp"
 #include "TracyFileRead.hpp"
@@ -432,17 +435,33 @@ Worker::Worker( const char* name, const char* program, const std::vector<ImportE
     for( auto& t : m_threadMap )
     {
         auto name = threadNames.find(t.first);
-        if (name != threadNames.end())
+        if( name != threadNames.end() )
         {
             char buf[128];
-            int len = snprintf(buf, sizeof(buf), "(%" PRIu64 ") %s", t.first, name->second.c_str());
-            AddThreadString(t.first, buf, len);
+            int len;
+            if( t.first <= std::numeric_limits<uint32_t>::max() )
+            {
+                len = snprintf( buf, sizeof( buf ), "(%" PRIu64 ") %s", t.first, name->second.c_str() );
+            }
+            else
+            {
+                len = snprintf( buf, sizeof( buf ), "(PID %" PRIu64 " TID %" PRIu64 ") %s", t.first >> 32, t.first & 0xFFFFFFFF, name->second.c_str() );
+            }
+            AddThreadString( t.first, buf, len );
         }
         else
         {
             char buf[64];
-            sprintf( buf, "%" PRIu64, t.first );
-            AddThreadString( t.first, buf, strlen( buf ) );
+            int len;
+            if( t.first <= std::numeric_limits<uint32_t>::max() )
+            {
+                len = sprintf( buf, "%" PRIu64, t.first );
+            }
+            else
+            {
+                len = sprintf( buf, "PID %" PRIu64 " TID %" PRIu64, t.first >> 32, t.first & 0xFFFFFFFF );
+            }
+            AddThreadString( t.first, buf, len );
         }
     }
 
@@ -1272,6 +1291,18 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
 
     if( eventMask & EventType::FrameImages )
     {
+        ZSTD_CDict* cdict = nullptr;
+        if( fileVer >= FileVersion( 0, 7, 8 ) )
+        {
+            uint32_t dsz;
+            f.Read( dsz );
+            auto dict = new char[dsz];
+            f.Read( dict, dsz );
+            cdict = ZSTD_createCDict( dict, dsz, 3 );
+            m_texcomp.SetDict( ZSTD_createDDict( dict, dsz ) );
+            delete[] dict;
+        }
+
         f.Read( sz );
         m_data.frameImage.reserve_exact( sz, m_slab );
         s_loadProgress.subTotal.store( sz, std::memory_order_relaxed );
@@ -1334,9 +1365,16 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
                 data[idx].fi = fi;
 
                 data[idx].state.store( JobData::InProgress, std::memory_order_release );
-                td->Queue( [this, &data, idx, fi, fileVer] {
+                td->Queue( [this, &data, idx, fi, fileVer, cdict] {
                     if( fileVer <= FileVersion( 0, 6, 9 ) ) m_texcomp.Rdo( data[idx].buf, fi->w * fi->h / 16 );
-                    fi->csz = m_texcomp.Pack( data[idx].ctx, data[idx].outbuf, data[idx].outsz, data[idx].buf, fi->w * fi->h / 2 );
+                    if( cdict )
+                    {
+                        fi->csz = m_texcomp.Pack( data[idx].ctx, cdict, data[idx].outbuf, data[idx].outsz, data[idx].buf, fi->w * fi->h / 2 );
+                    }
+                    else
+                    {
+                        fi->csz = m_texcomp.Pack( data[idx].ctx, data[idx].outbuf, data[idx].outsz, data[idx].buf, fi->w * fi->h / 2 );
+                    }
                     data[idx].state.store( JobData::DataReady, std::memory_order_release );
                 } );
 
@@ -1368,9 +1406,17 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
                 }
             }
         }
+
+        ZSTD_freeCDict( cdict );
     }
     else
     {
+        if( fileVer >= FileVersion( 0, 7, 8 ) )
+        {
+            uint32_t dsz;
+            f.Read( dsz );
+            f.Skip( dsz );
+        }
         f.Read( sz );
         s_loadProgress.subTotal.store( sz, std::memory_order_relaxed );
         for( uint64_t i=0; i<sz; i++ )
@@ -6882,7 +6928,7 @@ void Worker::Disconnect()
     m_disconnect = true;
 }
 
-void Worker::Write( FileWrite& f )
+void Worker::Write( FileWrite& f, bool fiDict )
 {
     DoPostponedWork();
 
@@ -7250,15 +7296,66 @@ void Worker::Write( FileWrite& f )
     if( sz != 0 ) f.Write( m_data.appInfo.data(), sizeof( m_data.appInfo[0] ) * sz );
 
     {
-        TextureCompression texcomp;
         sz = m_data.frameImage.size();
+        if( fiDict )
+        {
+            enum : uint32_t { DictSize = 4*1024*1024 };
+            enum : uint32_t { SamplesLimit = 1U << 31 };
+            uint32_t sNum = 0;
+            uint32_t sSize = 0;
+            for( auto& fi : m_data.frameImage )
+            {
+                const auto fisz = fi->w * fi->h / 2;
+                if( sSize + fisz > SamplesLimit ) break;
+                sSize += fisz;
+                sNum++;
+            }
+
+            uint32_t offset = 0;
+            auto sdata = new char[sSize];
+            auto ssize = new size_t[sSize];
+            for( uint32_t i=0; i<sNum; i++ )
+            {
+                const auto& fi = m_data.frameImage[i];
+                const auto fisz = fi->w * fi->h / 2;
+                const auto image = m_texcomp.Unpack( *fi );
+                memcpy( sdata+offset, image, fisz );
+                ssize[i] = fisz;
+                offset += fisz;
+            }
+            assert( offset == sSize );
+
+            ZDICT_fastCover_params_t params = {};
+            params.d = 6;
+            params.k = 50;
+            params.f = 30;
+            params.nbThreads = std::thread::hardware_concurrency();
+            params.zParams.compressionLevel = 3;
+
+            auto dict = new char[DictSize];
+            const auto finalDictSize = (uint32_t)ZDICT_optimizeTrainFromBuffer_fastCover( dict, DictSize, sdata, ssize, sNum, &params );
+            auto zdict = ZSTD_createCDict( dict, finalDictSize, 3 );
+
+            f.Write( &finalDictSize, sizeof( finalDictSize ) );
+            f.Write( dict, finalDictSize );
+
+            ZSTD_freeCDict( zdict );
+            delete[] dict;
+            delete[] ssize;
+            delete[] sdata;
+        }
+        else
+        {
+            uint32_t zero = 0;
+            f.Write( &zero, sizeof( zero ) );
+        }
         f.Write( &sz, sizeof( sz ) );
         for( auto& fi : m_data.frameImage )
         {
             f.Write( &fi->w, sizeof( fi->w ) );
             f.Write( &fi->h, sizeof( fi->h ) );
             f.Write( &fi->flip, sizeof( fi->flip ) );
-            const auto image = texcomp.Unpack( *fi );
+            const auto image = m_texcomp.Unpack( *fi );
             f.Write( image, fi->w * fi->h / 2 );
         }
     }

@@ -2,9 +2,6 @@ Note: There is no guarantee that version mismatched client and server will
 be able to talk with each other. Network protocol breakages won't be listed
 here.
 
-Note: Release numbers are nothing more than numbers. There are some
-"missing" versions due to trace file changes during development. This is not
-a mistake.
 
 v0.x.x (xxxx-xx-xx)
 -------------------
@@ -22,10 +19,14 @@ v0.x.x (xxxx-xx-xx)
 - Vulkan contexts can be now calibrated on Linux.
 - Support loading zstd-compressed chrome traces.
 - Chrome traces with multiple PID entries (and possibly conflicting TIDs)
-  can be now imported. A pseudo-TID will be created for each PID+TID pair
-  in such circumstances.
+  can be now imported.
 - Added support for custom source location tag ("loc") in chrome traces.
 - Sampling frequency can be now controlled using TRACY_SAMPLING_HZ macro.
+- Trace compression can be now selected when saving a trace.
+- If a trace cannot be saved, a failure dialog will be displayed.
+- Run-time memory usage of frame images can be reduced by calculating
+  a compression dictionary. This can be only performed when a trace is saved
+  or through the update utility.
 
 
 v0.7.7 (2021-04-01)
@@ -606,8 +607,8 @@ v0.4 (2018-10-09)
 - The capture utility will now display time span of the ongoing capture.
 
 
-v0.3.3 (2018-07-03)
--------------------
+v0.3 (2018-07-03)
+-----------------
 
 - Breaking change: the format of trace files has changed.
   - Previous tracy version will crash when trying to open new traces.
