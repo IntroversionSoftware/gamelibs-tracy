@@ -172,11 +172,18 @@ override_options = []
 if compiler.get_id() != 'msvc'
   override_options += 'cpp_std=c++11'
 endif
+link_deps = [ threads_dep ]
+if target_machine.system() == 'windows'
+    compiler = meson.get_compiler('cpp')
+    link_deps += [
+        compiler.find_library('dbghelp'),
+    ]
+endif
 
 tracy_compile_args += tracy_common_args
 
 tracy = library('tracy', tracy_src, tracy_header_files,
-    dependencies        : [ threads_dep ],
+    dependencies        : link_deps,
     include_directories : tracy_public_include_dirs,
     cpp_args            : tracy_compile_args,
     override_options    : override_options,
