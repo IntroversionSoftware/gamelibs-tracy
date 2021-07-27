@@ -9,6 +9,8 @@ tracy_common_args = []
 # dependencies that will be propagated to the users of the capture library
 tracy_public_deps = []
 
+tracy_public_libs = []
+
 if get_option('tracy_enable')
   tracy_common_args += ['-DTRACY_ENABLE']
 endif
@@ -192,6 +194,12 @@ override_options = []
 if compiler.get_id() != 'msvc'
   override_options += 'cpp_std=c++11'
 endif
+if target_machine.system() == 'windows'
+    compiler = meson.get_compiler('cpp')
+    tracy_public_libs += [
+        compiler.find_library('dbghelp'),
+    ]
+endif
 
 tracy_compile_args += tracy_common_args
 
@@ -222,6 +230,7 @@ pkg.generate(tracy,
 tracy_dep = declare_dependency(
     compile_args        : tracy_dep_compile_args,
     link_with           : tracy,
+    dependencies        : tracy_public_libs,
     include_directories : tracy_public_include_dirs)
 
 meson.override_dependency('tracy', tracy_dep)
