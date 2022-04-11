@@ -139,6 +139,7 @@ tracy_public_include_dirs = include_directories('.')
 
 link_deps = [ threads_dep ]
 if target_machine.system() == 'windows'
+    compiler = meson.get_compiler('cpp')
     link_deps += [
         compiler.find_library('dbghelp'),
     ]
