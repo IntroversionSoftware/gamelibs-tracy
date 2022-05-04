@@ -76,10 +76,6 @@ if get_option('tracy_fibers')
   add_project_arguments('-DTRACY_FIBERS', language : 'cpp')
 endif
 
-if get_option('tracy_timer_fallback')
-  add_project_arguments('-DTRACY_TIMER_FALLBACK', language : 'cpp')
-endif
-
 tracy_shared_libs = get_option('tracy_shared_libs')
 if tracy_shared_libs
   add_project_arguments('-DTRACY_EXPORTS', language : 'cpp')
