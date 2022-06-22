@@ -496,23 +496,20 @@ static const char* GetHostInfo()
 #  endif
     if( !GetVersion )
     {
-#  ifdef __MINGW32__
-        ptr += sprintf( ptr, "OS: Windows (MingW)\n" );
-#  else
-        ptr += sprintf( ptr, "OS: Windows\n" );
-#  endif
+        ptr += sprintf( ptr, "OS: Windows" );
     }
     else
     {
         RTL_OSVERSIONINFOW ver = { sizeof( RTL_OSVERSIONINFOW ) };
         GetVersion( &ver );
 
-#  ifdef __MINGW32__
-        ptr += sprintf( ptr, "OS: Windows %i.%i.%i (MingW)\n", (int)ver.dwMajorVersion, (int)ver.dwMinorVersion, (int)ver.dwBuildNumber );
-#  else
-        ptr += sprintf( ptr, "OS: Windows %i.%i.%i\n", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber );
-#  endif
+        ptr += sprintf( ptr, "OS: Windows %i.%i.%i", (int)ver.dwMajorVersion, (int)ver.dwMinorVersion, (int)ver.dwBuildNumber );
     }
+#  ifdef __MINGW32__
+    ptr += sprintf( ptr, " (MinGW)\n" );
+#  else
+    ptr += sprintf( ptr, "\n" );
+#  endif
 #elif defined __linux__
     struct utsname utsName;
     uname( &utsName );
