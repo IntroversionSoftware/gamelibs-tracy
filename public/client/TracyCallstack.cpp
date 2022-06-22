@@ -155,7 +155,7 @@ void InitCallstack()
 #endif
 
     SymInitialize( GetCurrentProcess(), nullptr, true );
-    SymSetOptions( SYMOPT_LOAD_LINES );
+    SymSetOptions( SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS );
 
     DWORD needed;
     LPVOID dev[4096];
