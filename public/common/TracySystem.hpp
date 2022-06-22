@@ -24,6 +24,7 @@ static inline uint32_t GetThreadHandle()
 
 TRACY_API void SetThreadName( const char* name );
 TRACY_API const char* GetThreadName( uint32_t id );
+TRACY_API bool HasThreadName( uint32_t id );
 
 TRACY_API const char* GetEnvVar(const char* name);
 
