@@ -660,7 +660,7 @@ void DbgHelpInit()
     assert( length < sizeof( buffer ) );
     if( SetEnvironmentVariableA( "_NT_SYMBOL_PATH", buffer ) == FALSE ) SymError( "SetEnvironmentVariableA", GetLastError() );
  
-    SymSetOptions( SymGetOptions() | SYMOPT_LOAD_LINES );
+    SymSetOptions( SymGetOptions() | SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS );
     if( SymInitialize( GetCurrentProcess(), NULL, TRUE ) == FALSE )
     {
         SymError( "SymInitialize", GetLastError() );
