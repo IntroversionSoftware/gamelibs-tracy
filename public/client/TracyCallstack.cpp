@@ -431,7 +431,7 @@ void DbgHelpInit()
         SymError( "SetEnvironmentVariableA", GetLastError() );
     }
 
-    SymSetOptions( SymGetOptions() | SYMOPT_LOAD_LINES );
+    SymSetOptions( SymGetOptions() | SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS );
     if( SymInitialize( GetCurrentProcess(), NULL, TRUE ) == FALSE ) {
         SymError( "SymInitialize", GetLastError() );
     }
