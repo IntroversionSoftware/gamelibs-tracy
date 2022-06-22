@@ -169,7 +169,7 @@ void DbgHelpInit()
 #endif
 
     SymInitialize( GetCurrentProcess(), nullptr, true );
-    SymSetOptions( SYMOPT_LOAD_LINES );
+    SymSetOptions( SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS );
 
 #ifdef TRACY_DBGHELP_LOCK
     DBGHELP_UNLOCK;
