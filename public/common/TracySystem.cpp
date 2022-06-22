@@ -212,6 +212,22 @@ TRACY_API void SetThreadName( const char* name )
 #endif
 }
 
+TRACY_API bool HasThreadName( uint32_t id )
+{
+#ifdef TRACY_ENABLE
+    auto ptr = GetThreadNameData().load( std::memory_order_relaxed );
+    while( ptr )
+    {
+        if( ptr->id == id )
+        {
+            return true;
+        }
+        ptr = ptr->next;
+    }
+#endif
+    return false;
+}
+
 TRACY_API const char* GetThreadName( uint32_t id )
 {
     static char buf[256];
