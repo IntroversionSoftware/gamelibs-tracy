@@ -91,6 +91,14 @@
 #  endif
 #endif
 
+#ifndef UNUSED_IN_RELEASE
+#ifdef _DEBUG
+#define UNUSED_IN_RELEASE
+#else
+#define UNUSED_IN_RELEASE [[maybe_unused]]
+#endif
+#endif
+
 #if defined _WIN32
 #  include <lmcons.h>
 extern "C" typedef LONG (WINAPI *t_RtlGetVersion)( PRTL_OSVERSIONINFOW );
@@ -3605,7 +3613,7 @@ void Profiler::ReportTopology()
     DWORD psz = 0;
     _GetLogicalProcessorInformationEx( RelationProcessorPackage, nullptr, &psz );
     auto packageInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)tracy_malloc( psz );
-    auto res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
+    UNUSED_IN_RELEASE auto res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
     assert( res );
 
     DWORD csz = 0;
