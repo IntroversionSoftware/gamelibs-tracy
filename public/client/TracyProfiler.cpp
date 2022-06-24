@@ -102,6 +102,16 @@
 #  endif
 #endif
 
+#ifndef TRACY_UNUSED
+#if defined(__GNUC__) || defined(__clang__)
+#define TRACY_UNUSED __attribute__((unused))
+#elif __cplusplus >= 201603L
+#define TRACY_UNUSED [[maybe_unused]]
+#else
+#define TRACY_UNUSED
+#endif
+#endif
+
 #if defined _WIN32
 #  include <lmcons.h>
 extern "C" typedef LONG (WINAPI *t_RtlGetVersion)( PRTL_OSVERSIONINFOW );
@@ -3683,10 +3693,12 @@ void Profiler::ReportTopology()
 #  endif
     if( !_GetLogicalProcessorInformationEx ) return;
 
+    TRACY_UNUSED BOOL res;
+
     DWORD psz = 0;
     _GetLogicalProcessorInformationEx( RelationProcessorPackage, nullptr, &psz );
     auto packageInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)tracy_malloc( psz );
-    auto res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
+    res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
     assert( res );
 
     DWORD csz = 0;
