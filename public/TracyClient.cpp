@@ -30,6 +30,7 @@
 #include "client/TracyAlloc.cpp"
 #include "client/TracyOverride.cpp"
 
+#ifdef TRACY_HAS_CALLSTACK
 #if TRACY_HAS_CALLSTACK == 2 || TRACY_HAS_CALLSTACK == 3 || TRACY_HAS_CALLSTACK == 4 || TRACY_HAS_CALLSTACK == 6
 #  include "libbacktrace/alloc.cpp"
 #  include "libbacktrace/dwarf.cpp"
@@ -44,6 +45,7 @@
 #    include "libbacktrace/elf.cpp"
 #  endif
 #  include "common/TracyStackFrames.cpp"
+#endif
 #endif
 
 #ifdef _MSC_VER
