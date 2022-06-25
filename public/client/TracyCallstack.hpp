@@ -4,14 +4,13 @@
 #include "../common/TracyApi.h"
 #include "TracyCallstack.h"
 
+#ifdef TRACY_HAS_CALLSTACK
+
 #if TRACY_HAS_CALLSTACK == 2 || TRACY_HAS_CALLSTACK == 5
 #  include <unwind.h>
 #elif TRACY_HAS_CALLSTACK >= 3
 #  include <execinfo.h>
 #endif
-
-
-#ifdef TRACY_HAS_CALLSTACK
 
 #ifdef TRACY_DEBUGINFOD
 #  include <elfutils/debuginfod.h>
