@@ -1266,6 +1266,9 @@ void SysTraceWorker( void* ptr )
                             break;
                         default:
                             assert( false );
+#ifdef __clang__
+                            __builtin_unreachable();
+#endif
                             break;
                         }
 
