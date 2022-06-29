@@ -12,6 +12,7 @@
 #include "TracyCallstack.hpp"
 #include "TracySysPower.hpp"
 #include "TracySysTime.hpp"
+#include "TracyTimer.hpp"
 #include "TracyFastVector.hpp"
 #include "../common/TracyQueue.hpp"
 #include "../common/TracyAlign.hpp"
@@ -19,24 +20,8 @@
 #include "../common/TracyMutex.hpp"
 #include "../common/TracyProtocol.hpp"
 
-#if defined _WIN32
-#  include <intrin.h>
-#endif
-#ifdef __APPLE__
-#  include <TargetConditionals.h>
-#  include <mach/mach_time.h>
-#endif
-
-#if ( defined _WIN32 || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 ) )
-#  define TRACY_HW_TIMER
-#endif
-
 #ifdef __linux__
 #  include <signal.h>
-#endif
-
-#if defined TRACY_TIMER_FALLBACK || !defined TRACY_HW_TIMER
-#  include <chrono>
 #endif
 
 #ifndef TracyConcat
@@ -71,24 +56,6 @@ TRACY_API GpuCtxWrapper& GetGpuCtx();
 TRACY_API uint32_t GetThreadHandle();
 TRACY_API bool ProfilerAvailable();
 TRACY_API bool ProfilerAllocatorAvailable();
-TRACY_API int64_t GetFrequencyQpc();
-
-#if defined TRACY_TIMER_FALLBACK && defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
-TRACY_API bool HardwareSupportsInvariantTSC();  // check, if we need fallback scenario
-#else
-#  if defined TRACY_HW_TIMER
-tracy_force_inline bool HardwareSupportsInvariantTSC()
-{
-    return true;  // this is checked at startup
-}
-#  else
-tracy_force_inline bool HardwareSupportsInvariantTSC()
-{
-    return false;
-}
-#  endif
-#endif
-
 
 struct SourceLocationData
 {
@@ -189,62 +156,7 @@ public:
 
     static tracy_force_inline int64_t GetTime()
     {
-#ifdef TRACY_HW_TIMER
-#  if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
-        if( HardwareSupportsInvariantTSC() ) return mach_absolute_time();
-#  elif defined _WIN32
-#    ifdef TRACY_TIMER_QPC
-        return GetTimeQpc();
-#    else
-        if( HardwareSupportsInvariantTSC() ) return int64_t( __rdtsc() );
-#    endif
-#  elif defined __i386 || defined _M_IX86
-        if( HardwareSupportsInvariantTSC() )
-        {
-            uint32_t eax, edx;
-            asm volatile ( "rdtsc" : "=a" (eax), "=d" (edx) );
-            return ( uint64_t( edx ) << 32 ) + uint64_t( eax );
-        }
-#  elif defined __x86_64__ || defined _M_X64
-        if( HardwareSupportsInvariantTSC() )
-        {
-            uint64_t rax, rdx;
-#ifdef TRACY_PATCHABLE_NOPSLEDS
-            // Some external tooling (such as rr) wants to patch our rdtsc and replace it by a
-            // branch to control the external input seen by a program. This kind of patching is
-            // not generally possible depending on the surrounding code and can lead to significant
-            // slowdowns if the compiler generated unlucky code and rr and tracy are used together.
-            // To avoid this, use the rr-safe `nopl 0(%rax, %rax, 1); rdtsc` instruction sequence,
-            // which rr promises will be patchable independent of the surrounding code.
-            asm volatile (
-                    // This is nopl 0(%rax, %rax, 1), but assemblers are inconsistent about whether
-                    // they emit that as a 4 or 5 byte sequence and we need to be guaranteed to use
-                    // the 5 byte one.
-                    ".byte 0x0f, 0x1f, 0x44, 0x00, 0x00\n\t"
-                    "rdtsc" : "=a" (rax), "=d" (rdx) );
-#else
-            asm volatile ( "rdtsc" : "=a" (rax), "=d" (rdx) );
-#endif
-            return (int64_t)(( rdx << 32 ) + rax);
-        }
-#  else
-#    error "TRACY_HW_TIMER detection logic needs fixing"
-#  endif
-#endif
-
-#if !defined TRACY_HW_TIMER || defined TRACY_TIMER_FALLBACK
-#  if defined __linux__ && defined CLOCK_MONOTONIC_RAW
-        struct timespec ts;
-        clock_gettime( CLOCK_MONOTONIC_RAW, &ts );
-        return int64_t( ts.tv_sec ) * 1000000000ll + int64_t( ts.tv_nsec );
-#  else
-        return std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::high_resolution_clock::now().time_since_epoch() ).count();
-#  endif
-#endif
-
-#if !defined TRACY_TIMER_FALLBACK
-        return 0;  // unreachable branch
-#endif
+        return high_res_time::now().time_since_epoch().count();
     }
 
     tracy_force_inline uint32_t GetNextZoneId()
@@ -849,7 +761,6 @@ private:
     void AckServerQuery();
     void AckSymbolCodeNotAvailable();
 
-    void CalibrateTimer();
     void CalibrateDelay();
     void ReportTopology();
 
@@ -909,11 +820,6 @@ private:
         GetProfiler().m_serialQueue.commit_next();
     }
 
-#if defined _WIN32 && defined TRACY_TIMER_QPC
-    static int64_t GetTimeQpc();
-#endif
-
-    double m_timerMul;
     uint64_t m_resolution;
     uint64_t m_delay;
     std::atomic<int64_t> m_timeBegin;
