@@ -3541,7 +3541,7 @@ void Profiler::CalibrateTimer()
 {
     m_timerMul = 1.;
 
-#ifdef TRACY_HW_TIMER
+#if defined TRACY_HW_TIMER || defined TRACY_TIMER_QPC
 
 #  if !defined TRACY_TIMER_QPC && defined TRACY_TIMER_FALLBACK
     const bool needCalibration = HardwareSupportsInvariantTSC();
