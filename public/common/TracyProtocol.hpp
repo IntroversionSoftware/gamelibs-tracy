@@ -9,7 +9,7 @@ namespace tracy
 
 constexpr unsigned Lz4CompressBound( unsigned isize ) { return isize + ( isize / 255 ) + 16; }
 
-enum : uint32_t { ProtocolVersion = 64 };
+enum : uint32_t { ProtocolVersion = 65 };
 enum : uint16_t { BroadcastVersion = 3 };
 
 using lz4sz_t = uint32_t;
@@ -92,7 +92,6 @@ struct WelcomeFlag
 
 struct WelcomeMessage
 {
-    double timerMul;
     int64_t initBegin;
     int64_t initEnd;
     uint64_t delay;

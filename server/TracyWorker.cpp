@@ -588,7 +588,7 @@ Worker::Worker( FileRead& f, EventType::Type eventMask, bool bgTasks )
     s_loadProgress.total.store( 11, std::memory_order_relaxed );
     s_loadProgress.subTotal.store( 0, std::memory_order_relaxed );
     s_loadProgress.progress.store( LoadProgress::Initialization, std::memory_order_relaxed );
-    f.Read8( m_resolution, m_timerMul, m_data.lastTime, m_data.frameOffset, m_pid, m_samplingPeriod, m_data.cpuArch, m_data.cpuId );
+    f.Read7( m_resolution, m_data.lastTime, m_data.frameOffset, m_pid, m_samplingPeriod, m_data.cpuArch, m_data.cpuId );
     f.Read( m_data.cpuManufacturer, 12 );
     m_data.cpuManufacturer[12] = '\0';
 
@@ -2741,7 +2741,6 @@ void Worker::Exec()
             m_handshake.store( HandshakeDropped, std::memory_order_relaxed );
             goto close;
         }
-        m_timerMul = welcome.timerMul;
         m_data.baseTime = welcome.initBegin;
         const auto initEnd = TscTime( welcome.initEnd );
         m_data.framesBase->frames.push_back( FrameEvent{ 0, -1, -1 } );
@@ -7604,7 +7603,6 @@ void Worker::Write( FileWrite& f, bool fiDict )
 
     f.Write( &m_delay, sizeof( m_delay ) );
     f.Write( &m_resolution, sizeof( m_resolution ) );
-    f.Write( &m_timerMul, sizeof( m_timerMul ) );
     f.Write( &m_data.lastTime, sizeof( m_data.lastTime ) );
     f.Write( &m_data.frameOffset, sizeof( m_data.frameOffset ) );
     f.Write( &m_pid, sizeof( m_pid ) );
