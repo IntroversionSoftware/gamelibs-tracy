@@ -28,7 +28,9 @@
 #endif
 
 #if ( defined _WIN32 || ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 ) || ( defined TARGET_OS_IOS && TARGET_OS_IOS == 1 ) )
-#  define TRACY_HW_TIMER
+#  if !defined _M_ARM && !defined _M_ARM64
+#    define TRACY_HW_TIMER
+#  endif
 #endif
 
 #ifdef __linux__
