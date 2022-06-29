@@ -77,6 +77,7 @@
 #include "TracyScoped.hpp"
 #include "TracyProfiler.hpp"
 #include "TracyThread.hpp"
+#include "TracyTimer.hpp"
 #include "TracyArmCpuTable.hpp"
 #include "TracySysTrace.hpp"
 #include "../tracy/TracyC.h"
@@ -313,97 +314,12 @@ static inline void CpuId( uint32_t* regs, uint32_t leaf )
     __get_cpuid( leaf, regs, regs+1, regs+2, regs+3 );
 #endif
 }
-
-static void InitFailure( const char* msg )
-{
-#if defined _WIN32
-    bool hasConsole = false;
-    bool reopen = false;
-    const auto attached = AttachConsole( ATTACH_PARENT_PROCESS );
-    if( attached )
-    {
-        hasConsole = true;
-        reopen = true;
-    }
-    else
-    {
-        const auto err = GetLastError();
-        if( err == ERROR_ACCESS_DENIED )
-        {
-            hasConsole = true;
-        }
-    }
-    if( hasConsole )
-    {
-        fprintf( stderr, "Tracy Profiler initialization failure: %s\n", msg );
-        if( reopen )
-        {
-            freopen( "CONOUT$", "w", stderr );
-            fprintf( stderr, "Tracy Profiler initialization failure: %s\n", msg );
-        }
-    }
-    else
-    {
-#  ifndef TRACY_UWP
-        MessageBoxA( nullptr, msg, "Tracy Profiler initialization failure", MB_ICONSTOP );
-#  endif
-    }
-#else
-    fprintf( stderr, "Tracy Profiler initialization failure: %s\n", msg );
-#endif
-    exit( 1 );
-}
-
-static bool CheckHardwareSupportsInvariantTSC()
-{
-    const char* noCheck = GetEnvVar( "TRACY_NO_INVARIANT_CHECK" );
-    if( noCheck && noCheck[0] == '1' ) return true;
-
-    uint32_t regs[4];
-    CpuId( regs, 1 );
-    if( !( regs[3] & ( 1 << 4 ) ) )
-    {
-#if !defined TRACY_TIMER_QPC && !defined TRACY_TIMER_FALLBACK
-        InitFailure( "CPU doesn't support RDTSC instruction." );
-#else
-        return false;
-#endif
-    }
-    CpuId( regs, 0x80000007 );
-    if( regs[3] & ( 1 << 8 ) ) return true;
-
-    return false;
-}
-
-#if defined TRACY_TIMER_FALLBACK && defined TRACY_HW_TIMER
-bool HardwareSupportsInvariantTSC()
-{
-    static bool cachedResult = CheckHardwareSupportsInvariantTSC();
-    return cachedResult;
-}
 #endif
 
 static int64_t SetupHwTimer()
 {
-#if !defined TRACY_TIMER_QPC && !defined TRACY_TIMER_FALLBACK
-    if( !CheckHardwareSupportsInvariantTSC() )
-    {
-#if defined _WIN32
-        InitFailure( "CPU doesn't support invariant TSC.\nDefine TRACY_NO_INVARIANT_CHECK=1 to ignore this error, *if you know what you are doing*.\nAlternatively you may rebuild the application with the TRACY_TIMER_QPC or TRACY_TIMER_FALLBACK define to use lower resolution timer." );
-#else
-        InitFailure( "CPU doesn't support invariant TSC.\nDefine TRACY_NO_INVARIANT_CHECK=1 to ignore this error, *if you know what you are doing*.\nAlternatively you may rebuild the application with the TRACY_TIMER_FALLBACK define to use lower resolution timer." );
-#endif
-    }
-#endif
-
     return Profiler::GetTime();
 }
-#else
-static int64_t SetupHwTimer()
-{
-    return Profiler::GetTime();
-}
-#endif
 
 static const char* GetProcessName()
 {
@@ -1151,17 +1067,6 @@ static void CrashHandler( int signal, siginfo_t* info, void* /*ucontext*/ )
 
 enum { QueuePrealloc = 256 * 1024 };
 
-TRACY_API int64_t GetFrequencyQpc()
-{
-#if defined _WIN32
-    LARGE_INTEGER t;
-    QueryPerformanceFrequency( &t );
-    return t.QuadPart;
-#else
-    return 0;
-#endif
-}
-
 #ifdef TRACY_DELAYED_INIT
 struct ThreadNameData;
 TRACY_API moodycamel::ConcurrentQueue<QueueItem>& GetQueue();
@@ -1437,7 +1342,6 @@ Profiler::Profiler()
 #  endif
 #endif
 
-    CalibrateTimer();
     CalibrateDelay();
     ReportTopology();
 
@@ -1693,7 +1597,6 @@ void Profiler::Worker()
 #endif
 
     WelcomeMessage welcome;
-    MemWrite( &welcome.timerMul, m_timerMul );
     MemWrite( &welcome.initBegin, GetInitTime() );
     MemWrite( &welcome.initEnd, m_timeBegin.load( std::memory_order_relaxed ) );
     MemWrite( &welcome.delay, m_delay );
@@ -3594,37 +3497,6 @@ void Profiler::HandleDisconnect()
     }
 }
 
-void Profiler::CalibrateTimer()
-{
-    m_timerMul = 1.;
-
-#ifdef TRACY_HW_TIMER
-
-#  if !defined TRACY_TIMER_QPC && defined TRACY_TIMER_FALLBACK
-    const bool needCalibration = HardwareSupportsInvariantTSC();
-#  else
-    const bool needCalibration = true;
-#  endif
-    if( needCalibration )
-    {
-        std::atomic_signal_fence( std::memory_order_acq_rel );
-        const auto t0 = std::chrono::high_resolution_clock::now();
-        const auto r0 = GetTime();
-        std::atomic_signal_fence( std::memory_order_acq_rel );
-        std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
-        std::atomic_signal_fence( std::memory_order_acq_rel );
-        const auto t1 = std::chrono::high_resolution_clock::now();
-        const auto r1 = GetTime();
-        std::atomic_signal_fence( std::memory_order_acq_rel );
-
-        const auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>( t1 - t0 ).count();
-        const auto dr = r1 - r0;
-
-        m_timerMul = double( dt ) / double( dr );
-    }
-#endif
-}
-
 void Profiler::CalibrateDelay()
 {
     constexpr int Iterations = 50000;
@@ -4003,15 +3875,6 @@ void Profiler::HandleSourceCodeQuery( char* data, char* image, uint32_t id )
     tracy_free_fast( data );
     tracy_free_fast( image );
 }
-
-#if defined _WIN32 && defined TRACY_TIMER_QPC
-int64_t Profiler::GetTimeQpc()
-{
-    LARGE_INTEGER t;
-    QueryPerformanceCounter( &t );
-    return t.QuadPart;
-}
-#endif
 
 }
 
