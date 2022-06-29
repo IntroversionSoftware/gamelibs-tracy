@@ -584,7 +584,20 @@ static const char* GetHostInfo()
     ptr += sprintf( ptr, "Arch: unknown\n" );
 #endif
 
-#if defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
+#if defined _WIN32
+    char cpuModel[64] = "unknown";
+    HKEY hKey;
+    DWORD valType, valSize = sizeof( cpuModel );
+    if( RegOpenKeyExW( HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKey ) == ERROR_SUCCESS )
+    {
+        if( !RegQueryValueExA( hKey, "ProcessorNameString", nullptr, &valType, (PBYTE)cpuModel, &valSize ) )
+        {
+            if ( valType != REG_SZ || !strlen( cpuModel ) ) sprintf( cpuModel, "unknown" );
+        }
+        RegCloseKey( hKey );
+    }
+    ptr += sprintf( ptr, "CPU: %s\n", cpuModel );
+#elif defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64
     uint32_t regs[4];
     char cpuModel[4*4*3+1];
     cpuModel[4*4*3] = 0;
