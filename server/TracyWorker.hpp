@@ -948,9 +948,9 @@ private:
     template<typename Adapter, typename V>
     void WriteTimelineImpl( FileWrite& f, const V& vec, int64_t& refTime, int64_t& refGpuTime );
 
-    int64_t TscTime( int64_t tsc ) { return int64_t( ( tsc - m_data.baseTime ) * m_timerMul ); }
-    int64_t TscTime( uint64_t tsc ) { return int64_t( ( tsc - m_data.baseTime ) * m_timerMul ); }
-    int64_t TscPeriod( uint64_t tsc ) { return int64_t( tsc * m_timerMul ); }
+    int64_t TscTime( int64_t tsc ) { return int64_t( ( tsc - m_data.baseTime ) ); }
+    int64_t TscTime( uint64_t tsc ) { return int64_t( ( tsc - m_data.baseTime ) ); }
+    int64_t TscPeriod( uint64_t tsc ) { return int64_t( tsc ); }
 
     Socket m_sock;
     std::string m_addr;
@@ -967,7 +967,6 @@ private:
 
     int64_t m_delay;
     int64_t m_resolution;
-    double m_timerMul;
     std::string m_captureName;
     std::string m_captureProgram;
     uint64_t m_captureTime;
