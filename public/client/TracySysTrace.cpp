@@ -411,7 +411,7 @@ bool SysTraceStart( int64_t& samplingPeriod )
     s_prop->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
     s_prop->Wnode.BufferSize = psz;
     s_prop->Wnode.Flags = WNODE_FLAG_TRACED_GUID;
-#ifdef TRACY_TIMER_QPC
+#if defined TRACY_TIMER_QPC || !defined TRACY_HW_TIMER
     s_prop->Wnode.ClientContext = 1;
 #else
     s_prop->Wnode.ClientContext = 3;
