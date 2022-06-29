@@ -60,7 +60,7 @@ if get_option('tracy_no_frame_image')
   add_project_arguments('-DTRACY_NO_FRAME_IMAGE', language : 'cpp')
 endif
 
-if get_option('tracy_no_sys_trace')
+if get_option('tracy_no_system_tracing')
   add_project_arguments('-DTRACY_NO_SYSTEM_TRACING', language : 'cpp')
 endif
 
