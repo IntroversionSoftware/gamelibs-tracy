@@ -173,7 +173,7 @@ void WINAPI EventRecordCallback( PEVENT_RECORD record )
             const auto cswitch = (const CSwitch*)record->UserData;
 
             TracyLfqPrepare( QueueType::ContextSwitch );
-            MemWrite( &item->contextSwitch.time, hdr.TimeStamp.QuadPart );
+            MemWrite( &item->contextSwitch.time, hdr.TimeStamp.QuadPart * 100ULL );
             MemWrite( &item->contextSwitch.oldThread, cswitch->oldThreadId );
             MemWrite( &item->contextSwitch.newThread, cswitch->newThreadId );
             MemWrite( &item->contextSwitch.cpu, record->BufferContext.ProcessorNumber );
@@ -189,7 +189,7 @@ void WINAPI EventRecordCallback( PEVENT_RECORD record )
             const auto rt = (const ReadyThread*)record->UserData;
 
             TracyLfqPrepare( QueueType::ThreadWakeup );
-            MemWrite( &item->threadWakeup.time, hdr.TimeStamp.QuadPart );
+            MemWrite( &item->threadWakeup.time, hdr.TimeStamp.QuadPart * 100ULL );
             MemWrite( &item->threadWakeup.cpu, record->BufferContext.ProcessorNumber );
             MemWrite( &item->threadWakeup.thread, rt->threadId );
             MemWrite( &item->threadWakeup.adjustReason, rt->adjustReason );
@@ -222,7 +222,7 @@ void WINAPI EventRecordCallback( PEVENT_RECORD record )
                     memcpy( trace, &sz, sizeof( uint64_t ) );
                     memcpy( trace+1, sw->stack, sizeof( uint64_t ) * sz );
                     TracyLfqPrepare( QueueType::CallstackSample );
-                    MemWrite( &item->callstackSampleFat.time, sw->eventTimeStamp );
+                    MemWrite( &item->callstackSampleFat.time, sw->eventTimeStamp * 100ULL );
                     MemWrite( &item->callstackSampleFat.thread, sw->stackThread );
                     MemWrite( &item->callstackSampleFat.ptr, (uint64_t)trace );
                     TracyLfqCommit;
@@ -248,7 +248,7 @@ void WINAPI EventRecordCallbackVsync( PEVENT_RECORD record )
     const auto vs = (const VSyncInfo*)record->UserData;
 
     TracyLfqPrepare( QueueType::FrameVsync );
-    MemWrite( &item->frameVsync.time, hdr.TimeStamp.QuadPart );
+    MemWrite( &item->frameVsync.time, hdr.TimeStamp.QuadPart * 100ULL );
     MemWrite( &item->frameVsync.id, vs->vidPnTargetId );
     TracyLfqCommit;
 }
@@ -263,11 +263,7 @@ static void SetupVsync()
     memset( s_propVsync, 0, sizeof( EVENT_TRACE_PROPERTIES ) );
     s_propVsync->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
     s_propVsync->Wnode.BufferSize = psz;
-#ifdef TRACY_TIMER_QPC
     s_propVsync->Wnode.ClientContext = 1;
-#else
-    s_propVsync->Wnode.ClientContext = 3;
-#endif
     s_propVsync->LoggerNameOffset = sizeof( EVENT_TRACE_PROPERTIES );
     strcpy( ((char*)s_propVsync) + sizeof( EVENT_TRACE_PROPERTIES ), "TracyVsync" );
 
@@ -397,11 +393,7 @@ bool SysTraceStart( int64_t& samplingPeriod )
     s_prop->LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
     s_prop->Wnode.BufferSize = psz;
     s_prop->Wnode.Flags = WNODE_FLAG_TRACED_GUID;
-#ifdef TRACY_TIMER_QPC
     s_prop->Wnode.ClientContext = 1;
-#else
-    s_prop->Wnode.ClientContext = 3;
-#endif
     s_prop->Wnode.Guid = SystemTraceControlGuid;
     s_prop->BufferSize = 1024;
     s_prop->MinimumBuffers = std::thread::hardware_concurrency() * 4;
@@ -860,10 +852,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
     pe.disabled = 1;
     pe.freq = 1;
     pe.inherit = 1;
-#if !defined TRACY_HW_TIMER || !( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
     pe.use_clockid = 1;
     pe.clockid = CLOCK_MONOTONIC_RAW;
-#endif
 
     if( !noSoftwareSampling )
     {
@@ -905,10 +895,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
     pe.exclude_hv = 1;
     pe.freq = 1;
     pe.inherit = 1;
-#if !defined TRACY_HW_TIMER || !( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
     pe.use_clockid = 1;
     pe.clockid = CLOCK_MONOTONIC_RAW;
-#endif
 
     if( !noRetirement )
     {
@@ -1031,10 +1019,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
         pe.sample_type = PERF_SAMPLE_TIME | PERF_SAMPLE_RAW;
         pe.disabled = 1;
         pe.config = vsyncId;
-#if !defined TRACY_HW_TIMER || !( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
         pe.use_clockid = 1;
         pe.clockid = CLOCK_MONOTONIC_RAW;
-#endif
 
         TracyDebug( "Setup vsync capture\n" );
         for( int i=0; i<s_numCpus; i++ )
@@ -1066,10 +1052,8 @@ bool SysTraceStart( int64_t& samplingPeriod )
         pe.disabled = 1;
         pe.inherit = 1;
         pe.config = switchId;
-#if !defined TRACY_HW_TIMER || !( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
         pe.use_clockid = 1;
         pe.clockid = CLOCK_MONOTONIC_RAW;
-#endif
 
         TracyDebug( "Setup context switch capture\n" );
         for( int i=0; i<s_numCpus; i++ )
@@ -1248,9 +1232,6 @@ void SysTraceWorker( void* ptr )
 
                         if( cnt > 0 )
                         {
-#if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
-                            t0 = ring.ConvertTimeToTsc( t0 );
-#endif
                             auto trace = GetCallstackBlock( cnt, ring, offset );
 
                             TracyLfqPrepare( QueueType::CallstackSample );
@@ -1282,9 +1263,6 @@ void SysTraceWorker( void* ptr )
                         offset += sizeof( uint64_t );
                         ring.Read( &t0, offset, sizeof( uint64_t ) );
 
-#if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
-                        t0 = ring.ConvertTimeToTsc( t0 );
-#endif
                         QueueType type;
                         switch( id )
                         {
@@ -1401,10 +1379,6 @@ void SysTraceWorker( void* ptr )
                         auto offset = rbPos;
                         perf_event_header hdr;
                         ring.Read( &hdr, offset, sizeof( perf_event_header ) );
-
-#if defined TRACY_HW_TIMER && ( defined __i386 || defined _M_IX86 || defined __x86_64__ || defined _M_X64 )
-                        t0 = ring.ConvertTimeToTsc( t0 );
-#endif
 
                         const auto rid = ring.GetId();
                         if( rid == EventContextSwitch )
