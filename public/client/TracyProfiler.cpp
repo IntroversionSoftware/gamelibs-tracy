@@ -575,7 +575,7 @@ static const char* GetHostInfo()
     ptr += sprintf( ptr, "Arch: x86\n" );
 #elif defined __x86_64__ || defined _M_X64
     ptr += sprintf( ptr, "Arch: x64\n" );
-#elif defined __aarch64__
+#elif defined __aarch64__ || defined _M_ARM64
     ptr += sprintf( ptr, "Arch: ARM64\n" );
 #elif defined __ARM_ARCH
     ptr += sprintf( ptr, "Arch: ARM\n" );
