@@ -338,11 +338,7 @@ static Session StartSingletonKernelLoggerSession( ULONGLONG EnableFlags )
     props.LoggerNameOffset = offsetof( Session, name );
     props.Wnode.BufferSize = sizeof( Session );
     props.Wnode.Guid = SystemTraceControlGuid;
-#ifdef TRACY_TIMER_QPC
     props.Wnode.ClientContext = 1;  // 1: QueryPerformanceCounter
-#else
-    props.Wnode.ClientContext = 3;  // 3: CPU Ticks (e.g., rdtsc)
-#endif
     props.Wnode.Flags = WNODE_FLAG_TRACED_GUID;
     props.LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
 
@@ -370,11 +366,7 @@ static Session StartPrivateKernelSession( const CHAR* name )
     props.LoggerNameOffset = offsetof( Session, name );
     props.Wnode.BufferSize = sizeof( Session );
     props.Wnode.Guid = NullGuid;
-#ifdef TRACY_TIMER_QPC
     props.Wnode.ClientContext = 1;  // 1: QueryPerformanceCounter
-#else
-    props.Wnode.ClientContext = 3;  // 3: CPU Ticks (e.g., rdtsc)
-#endif
     props.Wnode.Flags = WNODE_FLAG_TRACED_GUID;
     props.LogFileMode = 0;
     props.LogFileMode |= EVENT_TRACE_SYSTEM_LOGGER_MODE;
@@ -402,11 +394,7 @@ static Session StartUserSession( const CHAR* name )
     props.LoggerNameOffset = offsetof( Session, name );
     props.Wnode.BufferSize = sizeof( Session );
     props.Wnode.Guid = NullGuid;
-#ifdef TRACY_TIMER_QPC
     props.Wnode.ClientContext = 1;  // 1: QueryPerformanceCounter
-#else
-    props.Wnode.ClientContext = 3;  // 3: CPU Ticks (e.g., rdtsc)
-#endif
     //props.Wnode.Flags = WNODE_FLAG_TRACED_GUID; // unnecessary for user sessions, apparently
     props.LogFileMode = EVENT_TRACE_REAL_TIME_MODE;
 
