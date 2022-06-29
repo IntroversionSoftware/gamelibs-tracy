@@ -93,7 +93,6 @@ struct WelcomeFlag
 
 struct WelcomeMessage
 {
-    double timerMul;
     int64_t initBegin;
     int64_t initEnd;
     uint64_t resolution;
