@@ -32,6 +32,10 @@
 #  endif
 #endif
 
+#if defined _M_ARM || defined _M_ARM64
+#  define TRACY_TIMER_QPC
+#endif
+
 #ifdef __linux__
 #  include <signal.h>
 #endif
@@ -190,15 +194,13 @@ public:
 
     static tracy_force_inline int64_t GetTime()
     {
-#ifdef TRACY_HW_TIMER
+#if defined TRACY_TIMER_QPC
+        return GetTimeQpc();
+#elif defined TRACY_HW_TIMER
 #  if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
         if( HardwareSupportsInvariantTSC() ) return mach_absolute_time();
 #  elif defined _WIN32
-#    ifdef TRACY_TIMER_QPC
-        return GetTimeQpc();
-#    else
         if( HardwareSupportsInvariantTSC() ) return int64_t( __rdtsc() );
-#    endif
 #  elif defined __i386 || defined _M_IX86
         if( HardwareSupportsInvariantTSC() )
         {
@@ -218,7 +220,7 @@ public:
 #  endif
 #endif
 
-#if !defined TRACY_HW_TIMER || defined TRACY_TIMER_FALLBACK
+#if ( !defined TRACY_HW_TIMER && !defined TRACY_TIMER_QPC ) || defined TRACY_TIMER_FALLBACK
 #  if defined __linux__ && defined CLOCK_MONOTONIC_RAW
         struct timespec ts;
         clock_gettime( CLOCK_MONOTONIC_RAW, &ts );
