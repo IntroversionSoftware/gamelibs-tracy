@@ -188,7 +188,7 @@ tracy_src = [
     'public/TracyClient.cpp'
 ]
 
-tracy_public_include_dirs = include_directories('public')
+tracy_public_include_dirs = include_directories(['public', 'public/tracy'])
 
 compiler = meson.get_compiler('cpp')
 override_options = []
