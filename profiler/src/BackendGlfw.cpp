@@ -2,8 +2,15 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_opengl3_loader.h>
 
+#ifdef _WIN32
+#  define GLFW_EXPOSE_NATIVE_WIN32
+#  include <dwmapi.h>
+#  pragma comment(lib, "dwmapi.lib")
+#endif
+
 #include <chrono>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <thread>
@@ -146,6 +153,11 @@ Backend::Backend( const char* title, const std::function<void()>& redraw, const 
         }
         exit( 1 );
     }
+
+#ifdef _WIN32
+    BOOL value = TRUE;
+    DwmSetWindowAttribute(glfwGetWin32Window(s_window), DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
+#endif
 
     glfwSetWindowPos( s_window, m_winPos.x, m_winPos.y );
 #if GLFW_VERSION_MAJOR > 3 || ( GLFW_VERSION_MAJOR == 3 && GLFW_VERSION_MINOR >= 2 )
