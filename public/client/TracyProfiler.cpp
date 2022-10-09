@@ -1608,7 +1608,7 @@ void Profiler::Worker()
     uint8_t cpuArch = CpuArchX86;
 #elif defined __x86_64__ || defined _M_X64
     uint8_t cpuArch = CpuArchX64;
-#elif defined __aarch64__
+#elif defined __aarch64__ || defined _M_ARM64
     uint8_t cpuArch = CpuArchArm64;
 #elif defined __ARM_ARCH
     uint8_t cpuArch = CpuArchArm32;
