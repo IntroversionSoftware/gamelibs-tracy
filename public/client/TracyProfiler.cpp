@@ -3315,7 +3315,7 @@ void Profiler::HandleSymbolQueueItem( const SymbolQueueItem& si )
 
 void Profiler::SymbolWorker()
 {
-#ifdef __linux__
+#if defined(__linux__) && !defined(TRACY_NO_CRASH_HANDLER)
     s_symbolTid = syscall( SYS_gettid );
 #endif
 
