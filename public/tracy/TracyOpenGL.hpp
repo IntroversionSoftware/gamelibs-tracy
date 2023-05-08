@@ -1,7 +1,7 @@
 #ifndef __TRACYOPENGL_HPP__
 #define __TRACYOPENGL_HPP__
 
-#if !defined TRACY_ENABLE || defined __APPLE__
+#if !defined TRACY_ENABLE || !defined TRACY_ENABLE_GPU || defined __APPLE__
 
 #define TracyGpuContext
 #define TracyGpuContextName(x,y)
