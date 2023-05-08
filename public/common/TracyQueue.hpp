@@ -636,7 +636,8 @@ enum class PlotFormatType : uint8_t
 {
     Number,
     Memory,
-    Percentage
+    Percentage,
+    Watt
 };
 
 struct QueuePlotConfig
