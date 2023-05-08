@@ -5507,6 +5507,8 @@ void Worker::ProcessPlotConfig( const QueuePlotConfig& ev )
     } );
 
     plot->format = (PlotValueFormatting)ev.type;
+    if (plot->format == PlotValueFormatting::Watt)
+        plot->type = PlotType::Power;
     plot->showSteps = ev.step;
     plot->fill = ev.fill;
     plot->color = ev.color & 0xFFFFFF;
