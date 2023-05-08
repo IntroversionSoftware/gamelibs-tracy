@@ -1,7 +1,7 @@
 #ifndef __TRACYVULKAN_HPP__
 #define __TRACYVULKAN_HPP__
 
-#if !defined TRACY_ENABLE
+#if !defined TRACY_ENABLE || !defined TRACY_ENABLE_GPU
 
 #define TracyVkContext(x,y,z,w) nullptr
 #define TracyVkContextCalibrated(x,y,z,w,a,b) nullptr
