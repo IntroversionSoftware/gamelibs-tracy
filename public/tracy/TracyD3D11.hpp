@@ -1,7 +1,7 @@
 #ifndef __TRACYD3D11_HPP__
 #define __TRACYD3D11_HPP__
 
-#ifndef TRACY_ENABLE
+#if !defined TRACY_ENABLE || !defined TRACY_ENABLE_GPU
 
 #define TracyD3D11Context(device,queue) nullptr
 #define TracyD3D11Destroy(ctx)
