@@ -72,11 +72,13 @@ private:
         rd
     };
 
-    enum { ReadBit  = 0x100 };
-    enum { WriteBit = 0x200 };
-    enum { ReuseBit = 0x400 };
-    enum { RegMask  = 0x0FF };
-    enum { FlagMask = 0xF00 };
+    enum {
+        ReadBit  = 0x100,
+        WriteBit = 0x200,
+        ReuseBit = 0x400,
+        RegMask  = 0x0FF,
+        FlagMask = 0xF00
+    };
 
     enum class OpType : uint8_t
     {
