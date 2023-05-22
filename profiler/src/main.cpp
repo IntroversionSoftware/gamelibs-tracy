@@ -395,8 +395,8 @@ static void UpdateBroadcastClients()
                 {
                     uint32_t protoVer;
                     char procname[tracy::WelcomeMessageProgramNameSize];
-                    int32_t activeTime;
-                    uint16_t listenPort;
+                    int32_t activeTime = 0;
+                    uint16_t listenPort = 0;
                     uint64_t pid;
 
                     switch( broadcastVersion )
