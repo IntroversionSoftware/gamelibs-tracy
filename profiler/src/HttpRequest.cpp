@@ -39,7 +39,7 @@ static const char* GetOsInfo()
 #  ifdef __MINGW32__
         sprintf( buf, "Windows %i.%i.%i (MingW)", (int)ver.dwMajorVersion, (int)ver.dwMinorVersion, (int)ver.dwBuildNumber );
 #  else
-        sprintf( buf, "Windows %i.%i.%i", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber );
+        sprintf( buf, "Windows %lu.%lu.%lu", ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber );
 #  endif
     }
 #elif defined __linux__
