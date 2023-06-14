@@ -278,9 +278,12 @@ static bool EnsureReadable( uintptr_t address )
 #elif defined WIN32
 static bool EnsureReadable( uintptr_t address )
 {
-    MEMORY_BASIC_INFORMATION memInfo;
-    VirtualQuery( reinterpret_cast<void*>( address ), &memInfo, sizeof( memInfo ) );
-    return memInfo.Protect != PAGE_NOACCESS;
+    // Attempts to read an address with ReadProcessMemory. Trying to read an
+    // invalid address will ordinarily result in a crash, but ReadProcessMemory
+    // handles that exception and turns it into a return value.
+    uint32_t testRead;
+    SIZE_T bytesRead;
+    return ReadProcessMemory(GetCurrentProcess(), (LPVOID)address, &testRead, 1, &bytesRead) != 0 && bytesRead == 1;
 }
 #else
 static bool EnsureReadable( uintptr_t address )
