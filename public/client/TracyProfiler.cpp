@@ -279,6 +279,54 @@ static bool EnsureReadable(uintptr_t address)
     SIZE_T bytesRead;
     return ReadProcessMemory(GetCurrentProcess(), (LPVOID)address, &testRead, 1, &bytesRead) != 0 && bytesRead == 1;
 }
+
+typedef NTSTATUS(NTAPI *pfnLdrLockLoaderLock)(ULONG Flags, ULONG *State, ULONG_PTR *Cookie);
+typedef NTSTATUS(NTAPI *pfnLdrUnlockLoaderLock)(ULONG Flags, ULONG_PTR cookie);
+
+class DynamicLoaderLock {
+private:
+    static pfnLdrLockLoaderLock pLdrLockLoaderLock;
+    static pfnLdrUnlockLoaderLock pLdrUnlockLoaderLock;
+
+    ULONG_PTR m_cookie;
+
+    void Initialize()
+    {
+        if (!pLdrLockLoaderLock) {
+            pLdrLockLoaderLock = (pfnLdrLockLoaderLock)GetProcAddress(GetModuleHandleA("ntdll.dll"), "LdrLockLoaderLock");
+            pLdrUnlockLoaderLock = (pfnLdrUnlockLoaderLock)GetProcAddress(GetModuleHandleA("ntdll.dll"), "LdrUnlockLoaderLock");
+            assert(pLdrLockLoaderLock && pLdrUnlockLoaderLock);
+        }
+    }
+
+public:
+    DynamicLoaderLock()
+        : m_cookie(0)
+    {
+        if (!pLdrLockLoaderLock) TRACY_UNLIKELY
+        {
+            Initialize();
+        }
+        ULONG status = 0;
+        NTSTATUS rv = pLdrLockLoaderLock(0x2, &status, &m_cookie);
+        if (rv != 0 || status != 0x1)
+            m_cookie = 0;
+    }
+    ~DynamicLoaderLock()
+    {
+        pLdrUnlockLoaderLock(0x1, m_cookie);
+    }
+
+    bool IsHeld() const { return m_cookie != 0; }
+};
+
+pfnLdrLockLoaderLock   DynamicLoaderLock::pLdrLockLoaderLock;
+pfnLdrUnlockLoaderLock DynamicLoaderLock::pLdrUnlockLoaderLock;
+#else
+struct DynamicLoaderLock {
+public:
+    static constexpr bool IsHeld() { return true; }
+};
 #endif
 
 #ifndef TRACY_DELAYED_INIT
@@ -3721,10 +3769,15 @@ void Profiler::HandleSymbolCodeQuery( uint64_t symbol, uint32_t size )
     }
     else
     {
+        // Ensure the loaded libraries don't change while we are reading code.
+        // We can still fail to read code if the requested region is unmapped,
+        // but this protects against a DLL unload race between our check for
+        // readability and the actual read.
+        DynamicLoaderLock lock;
 #if defined __ANDROID__ || defined _WIN32
         // On Android it's common for code to be in mappings that are only executable
         // but not readable.
-        if( !EnsureReadable( symbol ) )
+        if( !lock.IsHeld() || !EnsureReadable( symbol ) )
         {
             AckSymbolCodeNotAvailable();
             return;
