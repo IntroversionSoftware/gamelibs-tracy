@@ -267,6 +267,18 @@ static bool EnsureReadable( uintptr_t address )
 
 #endif  // defined __ANDROID__
 
+#if defined _WIN32
+// Attempts to read an address with ReadProcessMemory. Trying to read an
+// invalid address will ordinarily result in a crash, but ReadProcessMemory
+// handles that exception and turns it into a return value.
+static bool EnsureReadable(uintptr_t address)
+{
+    uint32_t testRead;
+    SIZE_T bytesRead;
+    return ReadProcessMemory(GetCurrentProcess(), (LPVOID)address, &testRead, 1, &bytesRead) != 0 && bytesRead == 1;
+}
+#endif
+
 #ifndef TRACY_DELAYED_INIT
 
 struct InitTimeWrapper
@@ -3705,7 +3717,7 @@ void Profiler::HandleSymbolCodeQuery( uint64_t symbol, uint32_t size )
     }
     else
     {
-#ifdef __ANDROID__
+#if defined __ANDROID__ || defined _WIN32
         // On Android it's common for code to be in mappings that are only executable
         // but not readable.
         if( !EnsureReadable( symbol ) )
