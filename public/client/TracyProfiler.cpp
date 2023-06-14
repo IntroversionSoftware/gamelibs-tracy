@@ -299,6 +299,56 @@ static bool EnsureReadable( uintptr_t address )
 }
 #endif
 
+#if defined WIN32
+typedef NTSTATUS(NTAPI *pfnLdrLockLoaderLock)(ULONG Flags, ULONG *State, ULONG_PTR *Cookie);
+typedef NTSTATUS(NTAPI *pfnLdrUnlockLoaderLock)(ULONG Flags, ULONG_PTR cookie);
+
+class DynamicLoaderLock {
+private:
+    static pfnLdrLockLoaderLock pLdrLockLoaderLock;
+    static pfnLdrUnlockLoaderLock pLdrUnlockLoaderLock;
+
+    ULONG_PTR m_cookie;
+
+    void Initialize()
+    {
+        if (!pLdrLockLoaderLock) {
+            pLdrLockLoaderLock = (pfnLdrLockLoaderLock)GetProcAddress(GetModuleHandleA("ntdll.dll"), "LdrLockLoaderLock");
+            pLdrUnlockLoaderLock = (pfnLdrUnlockLoaderLock)GetProcAddress(GetModuleHandleA("ntdll.dll"), "LdrUnlockLoaderLock");
+            assert(pLdrLockLoaderLock && pLdrUnlockLoaderLock);
+        }
+    }
+
+public:
+    DynamicLoaderLock()
+        : m_cookie(0)
+    {
+        if (!pLdrLockLoaderLock) TRACY_UNLIKELY
+        {
+            Initialize();
+        }
+        ULONG status = 0;
+        NTSTATUS rv = pLdrLockLoaderLock(0x2, &status, &m_cookie);
+        if (rv != 0 || status != 0x1)
+            m_cookie = 0;
+    }
+    ~DynamicLoaderLock()
+    {
+        pLdrUnlockLoaderLock(0x1, m_cookie);
+    }
+
+    bool IsHeld() const { return m_cookie != 0; }
+};
+
+pfnLdrLockLoaderLock   DynamicLoaderLock::pLdrLockLoaderLock;
+pfnLdrUnlockLoaderLock DynamicLoaderLock::pLdrUnlockLoaderLock;
+#else
+struct DynamicLoaderLock {
+public:
+    static constexpr bool IsHeld() { return true; }
+};
+#endif
+
 #ifndef TRACY_DELAYED_INIT
 
 struct InitTimeWrapper
@@ -3822,6 +3872,12 @@ void Profiler::HandleSymbolCodeQuery( uint64_t symbol, uint32_t size )
     }
     else
     {
+        // Ensure the loaded libraries don't change while we are reading code.
+        // We can still fail to read code if the requested region is unmapped,
+        // but this protects against a DLL unload race between our check for
+        // readability and the actual read.
+        DynamicLoaderLock lock;
+
         if( !EnsureReadable( symbol ) )
         {
             AckSymbolCodeNotAvailable();
