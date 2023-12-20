@@ -88,6 +88,8 @@ extern "C"
 
 static tracy_force_inline void* Callstack( int32_t depth )
 {
+    if (!___tracy_RtlWalkFrameChain)
+        InitCallstackCritical();
     assert( depth >= 1 && depth < 63 );
     auto trace = (uintptr_t*)tracy_malloc( ( 1 + depth ) * sizeof( uintptr_t ) );
     const auto num = ___tracy_RtlWalkFrameChain( (void**)( trace + 1 ), depth, 0 );
