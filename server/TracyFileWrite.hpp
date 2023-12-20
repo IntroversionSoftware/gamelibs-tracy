@@ -17,6 +17,16 @@
 #include "../public/common/TracyForceInline.hpp"
 #include "../zstd/zstd.h"
 
+#ifndef TRACY_UNUSED
+#if defined(__GNUC__) || defined(__clang__)
+#define TRACY_UNUSED __attribute__((unused))
+#elif __cplusplus >= 201603L
+#define TRACY_UNUSED [[maybe_unused]]
+#else
+#define TRACY_UNUSED
+#endif
+#endif
+
 namespace tracy
 {
 
@@ -146,7 +156,7 @@ private:
         {
             ZSTD_outBuffer out = { lz4, LZ4Size, 0 };
             ZSTD_inBuffer in = { m_buf, m_offset, 0 };
-            const auto ret = ZSTD_compressStream2( m_streamZstd, &out, &in, ZSTD_e_flush );
+            TRACY_UNUSED const auto ret = ZSTD_compressStream2( m_streamZstd, &out, &in, ZSTD_e_flush );
             assert( ret == 0 );
             sz = out.pos;
         }
