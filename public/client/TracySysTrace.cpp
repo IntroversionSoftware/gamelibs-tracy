@@ -1132,7 +1132,7 @@ void SysTraceWorker( void* ptr )
     ThreadExitHandler threadExitHandler;
     SetThreadName( "Tracy Sampling" );
     InitRpmalloc();
-    sched_param sp = { 99 };
+    sched_param sp = { 95 };
     if( pthread_setschedparam( pthread_self(), SCHED_FIFO, &sp ) != 0 ) TracyDebug( "Failed to increase SysTraceWorker thread priority!\n" );
     auto ctxBufferIdx = s_ctxBufferIdx;
     auto ringArray = s_ring;
