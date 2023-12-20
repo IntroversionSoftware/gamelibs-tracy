@@ -20,6 +20,16 @@
 #  define stat64 stat
 #endif
 
+#ifndef TRACY_UNUSED
+#if defined(__GNUC__) || defined(__clang__)
+#define TRACY_UNUSED __attribute__((unused))
+#elif __cplusplus >= 201603L
+#define TRACY_UNUSED [[maybe_unused]]
+#else
+#define TRACY_UNUSED
+#endif
+#endif
+
 #include "TracyFileHeader.hpp"
 #include "TracyMmap.hpp"
 #include "../public/common/TracyYield.hpp"
@@ -482,7 +492,7 @@ private:
             ZSTD_outBuffer out = { m_second, BufSize, 0 };
             ZSTD_inBuffer in = { m_data + m_dataOffset, sz, 0 };
             m_dataOffset += sz;
-            const auto ret = ZSTD_decompressStream( m_streamZstd, &out, &in );
+            TRACY_UNUSED const auto ret = ZSTD_decompressStream( m_streamZstd, &out, &in );
             assert( ret > 0 );
             m_lastBlock = out.pos;
         }
