@@ -172,7 +172,7 @@ struct monotonic
     using duration    = std::chrono::nanoseconds;
     using rep         = duration::rep;
     using period      = duration::period;
-    using time_point  = std::chrono::time_point<monotonic_raw>;
+    using time_point  = std::chrono::time_point<monotonic>;
     static const bool is_steady = true;
 
     static time_point now() noexcept
@@ -180,7 +180,7 @@ struct monotonic
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
         std::chrono::duration<rep, period> time(std::chrono::seconds(ts.tv_sec) + std::chrono::nanoseconds(ts.tv_nsec));
-        return std::chrono::time_point<monotonic_raw>(time);
+        return std::chrono::time_point<monotonic>(time);
     }
 };
 #endif
