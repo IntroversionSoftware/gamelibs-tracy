@@ -191,9 +191,7 @@ tracy_public_include_dirs = include_directories(['public', 'public/tracy'])
 
 compiler = meson.get_compiler('cpp')
 override_options = []
-if compiler.get_id() != 'msvc'
-  override_options += 'cpp_std=c++11'
-endif
+override_options += 'cpp_std=c++20'
 if target_machine.system() == 'windows'
     compiler = meson.get_compiler('cpp')
     tracy_public_libs += [
