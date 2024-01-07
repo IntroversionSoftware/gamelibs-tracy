@@ -338,6 +338,8 @@ pfnLdrUnlockLoaderLock DynamicLoaderLock::pLdrUnlockLoaderLock;
 #else
 struct DynamicLoaderLock {
 public:
+    DynamicLoaderLock() {}
+    ~DynamicLoaderLock() {}
     static constexpr bool IsHeld() { return true; }
 };
 #endif
