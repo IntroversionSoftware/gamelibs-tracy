@@ -121,7 +121,7 @@ if get_option('tracy_debuginfod')
   tracy_public_deps += dependency('libdebuginfod')
 endif
 
-tracy_shared_libs = get_option('tracy_default_library') == 'shared'
+tracy_shared_libs = get_option('default_library') == 'shared'
 
 if tracy_shared_libs
   tracy_compile_args += ['-DTRACY_EXPORTS']
