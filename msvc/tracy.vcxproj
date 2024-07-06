@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1893293A-16CE-4CC3-9651-9EFCE89F3C15}</ProjectGuid>
+    <RootNamespace>Tracy</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <ImportGroup Label="PropertySheets">
+    <!-- Global Reference sheet -->
+    <Import Project="..\..\Setup.props" Condition="!exists('..\..\Toolset.props') And exists('..\..\Setup.props')" />
+    <!-- Toolset Property sheet -->
+    <Import Project="..\..\Toolset.props" Condition="exists('..\..\Toolset.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <EnableUnitySupport>false</EnableUnitySupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <!-- Master sheet -->
+    <Import Project="..\..\Master.props" Condition="exists('..\..\Master.props')" />
+  </ImportGroup>
+  <ItemGroup>
+    <ClCompile Include="..\public\TracyClient.cpp" />
+    <ClCompile Include="..\public\common\TracySystem.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\public\client\TracyArmCpuTable.hpp" />
+    <ClInclude Include="..\public\client\TracyCallstack.h" />
+    <ClInclude Include="..\public\client\TracyCallstack.hpp" />
+    <ClInclude Include="..\public\client\TracyCpuid.hpp" />
+    <ClInclude Include="..\public\client\TracyDebug.hpp" />
+    <ClInclude Include="..\public\client\TracyDxt1.hpp" />
+    <ClInclude Include="..\public\client\TracyFastVector.hpp" />
+    <ClInclude Include="..\public\client\TracyLock.hpp" />
+    <ClInclude Include="..\public\client\TracyProfiler.hpp" />
+    <ClInclude Include="..\public\client\TracyRingBuffer.hpp" />
+    <ClInclude Include="..\public\client\TracyScoped.hpp" />
+    <ClInclude Include="..\public\client\TracyStringHelpers.hpp" />
+    <ClInclude Include="..\public\client\TracySysPower.hpp" />
+    <ClInclude Include="..\public\client\TracySysTime.hpp" />
+    <ClInclude Include="..\public\client\TracySysTrace.hpp" />
+    <ClInclude Include="..\public\client\TracyThread.hpp" />
+    <ClInclude Include="..\public\client\TracyTimer.hpp" />
+    <ClInclude Include="..\public\client\tracy_concurrentqueue.h" />
+    <ClInclude Include="..\public\client\tracy_rpmalloc.hpp" />
+    <ClInclude Include="..\public\client\tracy_SPSCQueue.h" />
+    <ClInclude Include="..\public\common\TracyAlign.hpp" />
+    <ClInclude Include="..\public\common\TracyAlloc.hpp" />
+    <ClInclude Include="..\public\common\TracyApi.h" />
+    <ClInclude Include="..\public\common\TracyColor.hpp" />
+    <ClInclude Include="..\public\common\TracyForceInline.hpp" />
+    <ClInclude Include="..\public\common\TracyMutex.hpp" />
+    <ClInclude Include="..\public\common\TracyProtocol.hpp" />
+    <ClInclude Include="..\public\common\TracyQueue.hpp" />
+    <ClInclude Include="..\public\common\TracySocket.hpp" />
+    <ClInclude Include="..\public\common\TracyStackFrames.hpp" />
+    <ClInclude Include="..\public\common\TracySystem.hpp" />
+    <ClInclude Include="..\public\common\TracyUwp.hpp" />
+    <ClInclude Include="..\public\common\TracyVersion.hpp" />
+    <ClInclude Include="..\public\common\TracyYield.hpp" />
+    <ClInclude Include="..\public\common\tracy_lz4.hpp" />
+    <ClInclude Include="..\public\common\tracy_lz4hc.hpp" />
+    <ClInclude Include="..\public\libbacktrace\backtrace.hpp" />
+    <ClInclude Include="..\public\libbacktrace\config.h" />
+    <ClInclude Include="..\public\libbacktrace\filenames.hpp" />
+    <ClInclude Include="..\public\libbacktrace\internal.hpp" />
+    <ClInclude Include="..\public\tracy\Tracy.hpp" />
+    <ClInclude Include="..\public\tracy\TracyC.h" />
+    <ClInclude Include="..\public\tracy\TracyD3D11.hpp" />
+    <ClInclude Include="..\public\tracy\TracyD3D12.hpp" />
+    <ClInclude Include="..\public\tracy\TracyLua.hpp" />
+    <ClInclude Include="..\public\tracy\TracyOpenCL.hpp" />
+    <ClInclude Include="..\public\tracy\TracyOpenGL.hpp" />
+    <ClInclude Include="..\public\tracy\TracyVulkan.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
