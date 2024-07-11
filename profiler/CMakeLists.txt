@@ -228,6 +228,7 @@ if(SELF_PROFILE)
 endif()
 
 if(WIN32)
+    add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS)
     set(PROFILER_FILES ${PROFILER_FILES}
         win32/Tracy.manifest
         win32/Tracy.rc
