@@ -3052,18 +3052,7 @@ char* Profiler::SafeCopyProlog( const char* data, size_t size )
     if( size > SafeSendBufferSize ) buf = (char*)tracy_malloc( size );
 
 #ifdef _WIN32
-#  ifdef _MSC_VER
-    __try
-    {
-        memcpy( buf, data, size );
-    }
-    __except( 1 /*EXCEPTION_EXECUTE_HANDLER*/ )
-    {
-        success = false;
-    }
-#  else
-    memcpy( buf, data, size );
-#  endif
+    success = ReadProcessMemory( GetCurrentProcess(), data, buf, size, nullptr ) != 0;
 #else
     // Send through the pipe to ensure safe reads
     for( size_t offset = 0; offset != size; /*in loop*/ )
