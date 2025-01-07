@@ -281,7 +281,7 @@ static bool EnsureReadable( uintptr_t address )
     return mapping && EnsureReadable( *mapping );
 }
 #elif defined WIN32
-static bool EnsureReadable( uintptr_t address )
+[[maybe_unused]] static bool EnsureReadable( uintptr_t address )
 {
     // Attempts to read an address with ReadProcessMemory. Trying to read an
     // invalid address will ordinarily result in a crash, but ReadProcessMemory
@@ -1432,7 +1432,7 @@ void Profiler::InstallCrashHandler()
 #if defined _WIN32 && !defined TRACY_UWP && !defined TRACY_NO_CRASH_HANDLER
     // We cannot use Vectored Exception handling because it catches application-wide frame-based SEH blocks. We only
     // want to catch unhandled exceptions.
-    m_prevHandler = SetUnhandledExceptionFilter( CrashFilter );
+    m_prevHandler = (void *)SetUnhandledExceptionFilter( CrashFilter );
 #endif
 
 #ifndef TRACY_NO_CRASH_HANDLER
@@ -3746,7 +3746,7 @@ void Profiler::ReportTopology()
     if( GetLastError() == ERROR_INSUFFICIENT_BUFFER )
     {
         packageInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)tracy_malloc( psz );
-        auto res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
+        [[maybe_unused]] auto res = _GetLogicalProcessorInformationEx( RelationProcessorPackage, packageInfo, &psz );
         assert( res );
     }
     else
@@ -3759,7 +3759,7 @@ void Profiler::ReportTopology()
     if( GetLastError() == ERROR_INSUFFICIENT_BUFFER )
     {
         dieInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)tracy_malloc( dsz );
-        auto res = _GetLogicalProcessorInformationEx( RelationProcessorDie, dieInfo, &dsz );
+        [[maybe_unused]] auto res = _GetLogicalProcessorInformationEx( RelationProcessorDie, dieInfo, &dsz );
         assert( res );
     }
     else
@@ -3772,7 +3772,7 @@ void Profiler::ReportTopology()
     if( GetLastError() == ERROR_INSUFFICIENT_BUFFER )
     {
         coreInfo = (SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX*)tracy_malloc( csz );
-        auto res = _GetLogicalProcessorInformationEx( RelationProcessorCore, coreInfo, &csz );
+        [[maybe_unused]] auto res = _GetLogicalProcessorInformationEx( RelationProcessorCore, coreInfo, &csz );
         assert( res );
     }
     else
