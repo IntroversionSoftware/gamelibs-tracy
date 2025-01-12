@@ -17,6 +17,7 @@
 #define HAVE_DL_ITERATE_PHDR 1
 #define HAVE_ATOMIC_FUNCTIONS 1
 #define HAVE_DECL_STRNLEN 1
+#define HAVE_DECL__PGMPTR 0
 
 #ifdef __APPLE__
 #  define HAVE_MACH_O_DYLD_H 1
