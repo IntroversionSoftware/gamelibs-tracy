@@ -231,7 +231,7 @@ private:
         const auto startAddress = static_cast<uint64_t>( info->dlpi_addr );
         if( cache->ContainsImage( startAddress ) ) return 0;
 
-        const uint32_t headerCount = info->dlpi_phnum;
+        [[maybe_unused]] const uint32_t headerCount = info->dlpi_phnum;
         assert( headerCount > 0);
         const auto endAddress = static_cast<uint64_t>( info->dlpi_addr +
             info->dlpi_phdr[info->dlpi_phnum - 1].p_vaddr + info->dlpi_phdr[info->dlpi_phnum - 1].p_memsz);
