@@ -291,7 +291,7 @@ static bool EnsureReadable( uintptr_t address )
     return ReadProcessMemory(GetCurrentProcess(), (LPVOID)address, &testRead, 1, &bytesRead) != 0 && bytesRead == 1;
 }
 #else
-static bool EnsureReadable( uintptr_t address )
+[[maybe_unused]] static bool EnsureReadable( uintptr_t address )
 {
     return true;
 }
