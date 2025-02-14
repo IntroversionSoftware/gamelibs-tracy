@@ -147,8 +147,8 @@ private:
         const auto startAddress = reinterpret_cast<void*>( info->dlpi_addr );
         if( cache->Contains( startAddress ) ) return 0;
 
-        const uint32_t headerCount = info->dlpi_phnum;
-        assert( headerCount > 0);
+        [[maybe_unused]] const uint32_t headerCount = info->dlpi_phnum;
+        assert(headerCount > 0);
         const auto endAddress = reinterpret_cast<void*>( info->dlpi_addr +
             info->dlpi_phdr[info->dlpi_phnum - 1].p_vaddr + info->dlpi_phdr[info->dlpi_phnum - 1].p_memsz);
 
