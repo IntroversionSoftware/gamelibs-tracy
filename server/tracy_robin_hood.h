@@ -141,7 +141,9 @@ static Counts& counts() {
 #            define ROBIN_HOOD_PRIVATE_DEFINITION_BITSCANFORWARD() _BitScanForward64
 #        endif
 #        include <intrin.h>
-#        pragma intrinsic(ROBIN_HOOD(BITSCANFORWARD))
+#        if !defined(__clang__)
+#            pragma intrinsic(ROBIN_HOOD(BITSCANFORWARD))
+#        endif
 #        define ROBIN_HOOD_COUNT_TRAILING_ZEROES(x)                                       \
             [](size_t mask) noexcept -> int {                                             \
                 unsigned long index;                                                      \
