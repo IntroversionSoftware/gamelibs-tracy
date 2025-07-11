@@ -369,6 +369,7 @@ extern "C"
     ___tracy_t_RtlWalkFrameChain ___tracy_RtlWalkFrameChainPtr = nullptr;
     TRACY_API unsigned long ___tracy_RtlWalkFrameChain( void** callers, unsigned long count, unsigned long flags)
     {
+        if( !___tracy_RtlWalkFrameChainPtr ) InitCallstackCritical();
         return ___tracy_RtlWalkFrameChainPtr(callers, count, flags);
     }
 }
