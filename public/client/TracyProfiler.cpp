@@ -1119,6 +1119,8 @@ static void StartSystemTracing( int64_t& samplingPeriod )
 
 static void StopSystemTracing()
 {
+    static std::mutex sysTraceStopMutex;
+    std::lock_guard<std::mutex> lock( sysTraceStopMutex );
     if( s_sysTraceThread )
     {
         SysTraceStop();
