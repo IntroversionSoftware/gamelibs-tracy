@@ -800,7 +800,7 @@ private:
             range.active = false;
             Reset();
             match.emplace_back( srcloc );
-            strcpy( pattern, name );
+            strlcpy( pattern, name, sizeof( pattern ) );
         }
 
         void ShowZone( int16_t srcloc, const char* name, int64_t limitMin, int64_t limitMax )
@@ -812,7 +812,7 @@ private:
             range.max = limitMax;
             Reset();
             match.emplace_back( srcloc );
-            strcpy( pattern, name );
+            strlcpy( pattern, name, sizeof( pattern ) );
         }
     } m_findZone;
 
