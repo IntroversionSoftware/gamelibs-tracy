@@ -35,6 +35,8 @@ std::vector<std::string> SplitLines( const char* data, size_t sz );
 
 bool IsFrameExternal( const char* filename, const char* image );
 
+size_t strlcpy( char* dst, const char* src, size_t dstSize );
+
 }
 
 #endif
