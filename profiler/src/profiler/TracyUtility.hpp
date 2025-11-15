@@ -37,6 +37,8 @@ std::vector<std::string> SplitLines( const char* data, size_t sz );
 
 void PrintLocalStack( const CallstackFrameData* frame, const Worker& worker, const View& view );
 
+size_t strlcpy( char* dst, const char* src, size_t dstSize );
+
 }
 
 #endif
