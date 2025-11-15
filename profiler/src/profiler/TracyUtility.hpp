@@ -33,6 +33,8 @@ const char* FormatPlotValue( double val, PlotValueFormatting format );
 
 std::vector<std::string> SplitLines( const char* data, size_t sz );
 
+size_t strlcpy( char* dst, const char* src, size_t dstSize );
+
 }
 
 #endif
