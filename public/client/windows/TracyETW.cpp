@@ -151,7 +151,7 @@ static ULONG ETWError( ULONG result )
     static constexpr tracy::SourceLocationData srcLocHere{ nullptr, __FUNCTION__, __FILE__, __LINE__, Color_Red4 };
     tracy::ScopedZone ___tracy_scoped_zone( &srcLocHere, 0, true );
     char message[128] = {};
-    int written = snprintf( message, sizeof( message ), "ETW Error %u (0x%x): ", result, result );
+    int written = snprintf( message, sizeof( message ), "ETW Error %u (0x%08X): ", (unsigned int)result, (unsigned int)result );
     written += FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
@@ -172,7 +172,7 @@ static bool CheckAdminPrivilege()
     TOKEN_ELEVATION_TYPE elevationType = TokenElevationTypeDefault;
     DWORD ReturnLength = 0;
     if( GetTokenInformation( hToken, TokenElevationType, &elevationType, sizeof( elevationType ), &ReturnLength ) == FALSE )
-        ETWError( GetLastError() ), false;
+        ETWError( GetLastError() );
     CloseHandle( hToken );
     return ( elevationType == TokenElevationTypeFull );
 }
@@ -269,7 +269,7 @@ static ULONG CheckProviderSessions( GUID provider, ULONGLONG MatchAnyKeyword )
     }
     if( sessions[0].LoggerId == 0 )
         return ERROR_SUCCESS;
-    int length = snprintf( buffer, sizeof( buffer ), "ETW Warning: provider (0x%08X) already enabled by other session(s); Tracy may miss events.", provider.Data1 );
+    int length = snprintf( buffer, sizeof( buffer ), "ETW Warning: provider (0x%08X) already enabled by other session(s); Tracy may miss events.", (unsigned int)provider.Data1 );
     ETWErrorAction( 0, buffer, length );
     return ERROR_SUCCESS;
 }
@@ -508,7 +508,7 @@ static ULONG WINAPI OnBufferComplete( PEVENT_TRACE_LOGFILEA Buffer )
     if( Buffer->EventsLost > 0 )
     {
         char buffer[64] = {};
-        int length = snprintf( buffer, sizeof( buffer ), "ETW Warning: %u events have been lost.", Buffer->EventsLost );
+        int length = snprintf( buffer, sizeof( buffer ), "ETW Warning: %u events have been lost.", (unsigned int)Buffer->EventsLost );
         ETWErrorAction( ERROR_BUFFER_OVERFLOW, buffer, length );
     }
     return TRUE;    // or FALSE to break out of ProcessTrace()
