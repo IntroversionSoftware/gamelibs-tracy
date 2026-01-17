@@ -16,6 +16,9 @@
 #include "IconsFontAwesome6.h"
 #include "TracySourceTokenizer.hpp"
 
+// Visual Studio hack, defined in "Windows Kits\10\Include\10.0.26100.0\shared\rpcndr.h" for some reason
+#undef small
+
 #if !IMGUI_DEFINE_MATH_OPERATORS
 static inline ImVec2 operator+( const ImVec2& l, const ImVec2& r ) { return ImVec2( l.x + r.x, l.y + r.y ); }
 static inline ImVec2 operator-( const ImVec2& l, const ImVec2& r ) { return ImVec2( l.x - r.x, l.y - r.y ); }
