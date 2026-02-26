@@ -609,7 +609,7 @@ void InitCallstackCritical()
 
 static void SymError( const char* function, DWORD code ) {
     char message[1024] = {};
-    int written = snprintf( message, sizeof( message ), "ERROR: %s FAILED with code %u (0x%x) | ", function, code, code );
+    int written = snprintf( message, sizeof( message ), "ERROR: %s FAILED with code %u (0x%x) | ", function, (unsigned int)code, (unsigned int)code );
     written += FormatMessageA(
         FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,
