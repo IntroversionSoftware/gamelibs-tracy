@@ -50,7 +50,7 @@ jobs:
         cmake -B merge/build -S merge -DCMAKE_BUILD_TYPE=Release -DGIT_REV=${{ github.sha }}
         cmake --build merge/build --parallel --config Release
     - name: Build library
-      run: meson setup -Dprefix=$GITHUB_WORKSPACE/bin/lib build && meson compile -C build && meson install -C build
+      run: meson setup -Dprefix=$GITHUB_WORKSPACE/bin/lib -Dtracy_enable=true build && meson compile -C build && meson install -C build
     - name: Package artifacts
       run: |
         mkdir -p bin

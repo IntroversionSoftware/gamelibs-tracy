@@ -56,14 +56,14 @@ jobs:
         cmake --build merge/build --parallel
     - name: Library (cmake)
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DTRACY_ENABLE=ON
         cmake --build build
         cmake --install build
       env:
         CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/bin
     - name: Library (meson)
       run: |
-        meson setup -Dprefix=$GITHUB_WORKSPACE/bin/lib build-meson
+        meson setup -Dprefix=$GITHUB_WORKSPACE/bin/lib -Dtracy_enable=true build-meson
         meson compile -C build-meson
     - name: Test application
       run: |

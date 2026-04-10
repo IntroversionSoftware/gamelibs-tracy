@@ -124,7 +124,7 @@ macro(tracy_set_option_value var help default)
     endif()
 endmacro()
 
-tracy_set_option(TRACY_ENABLE "Enable profiling" ON)
+tracy_set_option(TRACY_ENABLE "Enable profiling" OFF)
 tracy_set_option(TRACY_ON_DEMAND "On-demand profiling" OFF)
 tracy_set_option_value(TRACY_CALLSTACK "Override the callstack collection depth for tracy zones" "")
 tracy_set_option(TRACY_NO_CALLSTACK "Disable all callstack related functionality" OFF)

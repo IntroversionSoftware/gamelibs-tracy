@@ -1,4 +1,4 @@
-option('tracy_enable', type : 'boolean', value : true, description : 'Enable profiling', yield: true)
+option('tracy_enable', type : 'boolean', value : false, description : 'Enable profiling', yield: true)
 option('on_demand', type : 'boolean', value : false, description : 'On-demand profiling')
 option('callstack', type : 'integer', value : 0, description : 'Enforce callstack collection for tracy zones x frames deep')
 option('no_callstack', type : 'boolean', value : false, description : 'Disable all callstack related functionality')
