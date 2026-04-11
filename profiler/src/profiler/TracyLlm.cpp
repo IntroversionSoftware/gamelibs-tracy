@@ -1163,7 +1163,7 @@ bool TracyLlm::OnResponse( const nlohmann::json& json )
     }
     catch( const nlohmann::json::exception& e )
     {
-        m_jobsLock.lock();
+        jobsLock.lock();
         m_focusInput = true;
         return false;
     }
