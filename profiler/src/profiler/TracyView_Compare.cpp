@@ -227,7 +227,7 @@ void View::DrawCompare()
                     auto f = std::shared_ptr<tracy::FileRead>( tracy::FileRead::Open( fn ) );
                     if( f )
                     {
-                        m_compare.loadThread = std::thread( [this, f] {
+                        m_compare.loadThread = std::jthread( [this, f] {
                             try
                             {
                                 m_compare.second = std::make_unique<Worker>( *f, EventType::SourceCache );

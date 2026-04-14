@@ -90,7 +90,7 @@ static tracy::BadVersionState badVer;
 static uint16_t port = 8086;
 static const char* connectTo = nullptr;
 static char title[128];
-static std::thread loadThread, updateThread, updateNotesThread;
+static std::jthread loadThread, updateThread, updateNotesThread;
 static std::unique_ptr<tracy::UdpListen> broadcastListen;
 static std::mutex resolvLock;
 static tracy::unordered_flat_map<std::string, std::string> resolvMap;
@@ -298,7 +298,7 @@ int main( int argc, char** argv )
     s_achievements = &achievements;
 
 #ifndef __EMSCRIPTEN__
-    updateThread = std::thread( [] {
+    updateThread = std::jthread( [] {
         HttpRequest( "nereid.pl", "/tracy/version", 8099, [] ( int size, char* data ) {
             if( size == 4 )
             {
@@ -311,7 +311,7 @@ int main( int argc, char** argv )
     } );
 #endif
 
-    auto iconThread = std::thread( [] {
+    auto iconThread = std::jthread( [] {
         iconPx = stbi_load_from_memory( (const stbi_uc*)Icon_data, Icon_size, &iconX, &iconY, nullptr, 4 );
         zigzagPx[0] = stbi_load_from_memory( (const stbi_uc*)ZigZag32_data, ZigZag32_size, &zigzagX[0], &zigzagY[0], nullptr, 4 );
         zigzagPx[1] = stbi_load_from_memory( (const stbi_uc*)ZigZag16_data, ZigZag16_size, &zigzagX[1], &zigzagY[1], nullptr, 4 );
@@ -826,7 +826,7 @@ static void DrawContents()
                 showReleaseNotes = true;
                 if( !updateNotesThread.joinable() )
                 {
-                    updateNotesThread = std::thread( [] {
+                    updateNotesThread = std::jthread( [] {
                         HttpRequest( "nereid.pl", "/tracy/notes", 8099, [] ( int size, char* data ) {
                             std::string notes( data, data+size );
                             delete[] data;
@@ -931,7 +931,7 @@ static void DrawContents()
                     auto f = std::shared_ptr<tracy::FileRead>( tracy::FileRead::Open( fn ) );
                     if( f )
                     {
-                        loadThread = std::thread( [f] {
+                        loadThread = std::jthread( [f] {
                             try
                             {
                                 view.store( std::make_shared<tracy::View>( RunOnMainThread, *f, SetWindowTitleCallback, SetupScaleCallback, AttentionCallback, s_achievements ), std::memory_order_release );
@@ -1147,7 +1147,7 @@ static void DrawContents()
             }
 
             view.store( nullptr, std::memory_order_release );
-            loadThread = std::thread( [view = std::move( viewPtr )] () mutable {
+            loadThread = std::jthread( [view = std::move( viewPtr )] () mutable {
                 view.reset();
                 viewShutdown.store( ViewShutdown::Join, std::memory_order_relaxed );
             } );
