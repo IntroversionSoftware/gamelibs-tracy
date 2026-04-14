@@ -32,7 +32,7 @@ private:
     std::condition_variable m_cv;
     std::vector<QueueItem> m_queue;
     uint16_t m_port;
-    std::thread m_thread;
+    std::jthread m_thread;
 };
 
 #endif
