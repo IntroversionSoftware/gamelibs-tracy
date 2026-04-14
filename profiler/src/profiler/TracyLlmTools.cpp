@@ -236,7 +236,7 @@ void TracyLlmTools::BuildManualEmbeddings( const std::string& model, TracyLlmApi
 
     assert( !m_cancel );
     m_manualEmbeddingState = { .model = model, .inProgress = true };
-    m_thread = std::thread( [this, &api] { ManualEmbeddingsWorker( api ); } );
+    m_thread = std::jthread( [this, &api] { ManualEmbeddingsWorker( api ); } );
 }
 
 void TracyLlmTools::ManualEmbeddingsWorker( TracyLlmApi& api )

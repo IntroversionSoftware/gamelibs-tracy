@@ -91,7 +91,7 @@ private:
 
     std::atomic<bool> m_exit;
     std::condition_variable m_cv;
-    std::thread m_thread;
+    std::jthread m_thread;
 
     mutable std::mutex m_jobsLock;
     std::vector<std::shared_ptr<WorkItem>> m_jobs;
