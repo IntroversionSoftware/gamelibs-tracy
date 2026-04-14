@@ -69,7 +69,7 @@ TracyLlm::TracyLlm( Worker& worker, View& view )
 
     m_busy = true;
     QueueConnect();
-    m_thread = std::thread( [this] { WorkerThread(); } );
+    m_thread = std::jthread( [this] { WorkerThread(); } );
 }
 
 TracyLlm::~TracyLlm()
