@@ -70,7 +70,7 @@ private:
     int m_ctxSize;
 
     mutable std::mutex m_lock;
-    std::thread m_thread;
+    std::jthread m_thread;
     bool m_cancel = false;
     EmbeddingState m_manualEmbeddingState;
     std::unique_ptr<TracyLlmEmbeddings> m_manualEmbeddings;

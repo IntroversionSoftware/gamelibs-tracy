@@ -651,7 +651,7 @@ private:
     };
 
     std::atomic<SaveThreadState> m_saveThreadState { SaveThreadState::Inert };
-    std::thread m_saveThread;
+    std::jthread m_saveThread;
     std::atomic<size_t> m_srcFileBytes { 0 };
     std::atomic<size_t> m_dstFileBytes { 0 };
 
@@ -833,7 +833,7 @@ private:
         bool link = true;
         std::unique_ptr<Worker> second;
         std::unique_ptr<UserData> userData;
-        std::thread loadThread;
+        std::jthread loadThread;
         BadVersionState badVer;
         char pattern[1024] = {};
         std::vector<int16_t> match[2];

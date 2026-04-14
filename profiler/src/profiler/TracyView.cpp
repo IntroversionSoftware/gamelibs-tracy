@@ -1471,7 +1471,7 @@ bool View::Save( const char* fn, FileCompression comp, int zlevel, bool buildDic
 
     m_userData.StateShouldBePreserved();
     m_saveThreadState.store( SaveThreadState::Saving, std::memory_order_relaxed );
-    m_saveThread = std::thread( [this, f{std::move( f )}, buildDict] {
+    m_saveThread = std::jthread( [this, f{std::move( f )}, buildDict] {
         Worker::MainThreadDataLockGuard lock = m_worker.ObtainLockForMainThread();
         m_worker.Write( *f, buildDict );
         f->Finish();
