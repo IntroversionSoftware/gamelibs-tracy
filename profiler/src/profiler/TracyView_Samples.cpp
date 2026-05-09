@@ -878,8 +878,6 @@ void View::DrawSampleParents()
                 }
             }
         }
-        assert( !stats.empty() );
-
         const auto symName = m_worker.GetString( symbol->name );
         const char* normalized = m_vd.shortenName != ShortenName::Never ? ShortenZoneName( ShortenName::OnlyNormalize, symName ) : nullptr;
         ImGui::PushFont( g_fonts.normal, FontBig );
@@ -962,6 +960,11 @@ void View::DrawSampleParents()
         {
         case 0:
         {
+            if( stats.empty() )
+            {
+                TextDisabledUnformatted( "No entry call stacks recorded for this symbol." );
+                break;
+            }
             TextDisabledUnformatted( "Entry call stack:" );
             ImGui::SameLine();
             if( ImGui::SmallButton( " " ICON_FA_CARET_LEFT " " ) )
