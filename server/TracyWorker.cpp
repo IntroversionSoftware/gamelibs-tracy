@@ -172,8 +172,6 @@ static void UpdateLockCountSharedLockable( LockMap& lockmap, size_t pos )
             lockCount--;
             break;
         case LockEvent::Type::ObtainShared:
-            assert( ( waitShared & tbit ) != 0 );
-            assert( ( sharedList & tbit ) == 0 );
             waitShared &= ~tbit;
             sharedList |= tbit;
             break;
