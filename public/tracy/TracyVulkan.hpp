@@ -442,7 +442,7 @@ private:
     tracy_force_inline void FindCalibratedTimestampDeviation()
     {
 #if defined _WIN32
-        m_qpcToNs = int64_t( 1000000000. / GetFrequencyQpc() );
+        m_qpcToNs = int64_t( 1000000000. / timers::detail::query_performance_frequency() );
 #endif
 
         constexpr size_t NumProbes = 32;
