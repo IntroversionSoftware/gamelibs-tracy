@@ -116,7 +116,7 @@ namespace tracy
                 // did not move, to prevent division by a gpuDelta of zero in later on (in the server).
                 // In practice, GetClockCalibration() should be advancing CPU and GPU together.
 
-                static const int64_t nanosecodsPerTick = int64_t(1000000000) / GetFrequencyQpc();
+                static const int64_t nanosecodsPerTick = int64_t(1000000000) / timers::detail::query_performance_frequency();
                 int64_t cpuDeltaNS = cpuDeltaTicks * nanosecodsPerTick;
                 // Save the device cpu timestamp, not the Tracy profiler timestamp:
                 m_prevCalibrationTicksCPU = cpuTimestamp;
