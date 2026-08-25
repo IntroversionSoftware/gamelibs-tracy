@@ -1,11 +1,6 @@
 #ifndef __TRACYOPENGL_HPP__
 #define __TRACYOPENGL_HPP__
 
-#ifdef __APPLE__
-#define TRACY_OPENGL_DISABLE
-#warning "OpenGL timestamps are unreliable on Apple devices that still run OpenGL."
-#endif
-
 #if !defined TRACY_ENABLE || !defined TRACY_ENABLE_GPU || defined TRACY_OPENGL_DISABLE
 
 #define TracyGpuContext
