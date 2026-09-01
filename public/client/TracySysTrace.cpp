@@ -733,6 +733,10 @@ bool SysTraceStart( int64_t& samplingPeriod )
     TracyDebug( "sched_waking id: %i", wakingId );
     TracyDebug( "drm_vblank_event id: %i", vsyncId );
 
+    struct utsname kernelInfo;
+    const bool gotKernelInfo = uname( &kernelInfo ) == 0;
+    const PerfKernelAbi perfAbi = gotKernelInfo ? ClassifyPerfKernelAbi( kernelInfo.release ) : PerfAbiPre41;
+
 #ifdef TRACY_NO_SAMPLING
     const bool noSoftwareSampling = true;
 #else
